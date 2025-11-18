@@ -1,0 +1,73 @@
+DROP TABLE IF EXISTS NopTien CASCADE;
+DROP TABLE IF EXISTS LichSuHokhau CASCADE;
+DROP TABLE IF EXISTS TamTruTamVang CASCADE;
+DROP TABLE IF EXISTS HoKhau CASCADE;
+DROP TABLE IF EXISTS NhanKhau CASCADE;
+DROP TABLE IF EXISTS KhoanThu CASCADE;
+DROP TABLE IF EXISTS Users CASCADE;
+
+CREATE TABLE Users (
+    UserName VARCHAR(50) PRIMARY KEY,
+    PassWord VARCHAR(255) NOT NULL,
+    vaiTro VARCHAR(20)
+);
+
+CREATE TABLE NhanKhau (
+    id SERIAL PRIMARY KEY,
+    HoTen VARCHAR(100) NOT NULL,
+    NgaySinh DATE,
+    GioiTinh VARCHAR(10),
+    DanToc VARCHAR(30),
+    TonGiao VARCHAR(30),
+    cccd VARCHAR(20) UNIQUE,
+    NgayCap DATE,
+    NoiCap VARCHAR(100),
+    NgheNghiep VARCHAR(100),
+    GhiChu TEXT
+);
+
+CREATE TABLE HoKhau (
+    SoHoKhau SERIAL PRIMARY KEY, 
+    SoNha VARCHAR(50),
+    Duong VARCHAR(50),
+    Phuong VARCHAR(50),
+    Quan VARCHAR(50),
+    NgayLamHoKhau DATE,
+    ChuHoId INT NOT NULL UNIQUE,
+    FOREIGN KEY (chuHoId) REFERENCES NhanKhau(id)
+);
+
+CREATE TABLE TamTruTamVang (
+    id SERIAL PRIMARY KEY,
+    nhanKhauId INT NOT NULL REFERENCES NhanKhau(id),
+    trangThai VARCHAR(20) NOT NULL,
+    diaChi VARCHAR(100),
+    thoiGian DATE NOT NULL,
+    noiDungDeNghi TEXT
+);
+
+CREATE TABLE KhoanThu (
+    id SERIAL PRIMARY KEY,
+    NgayTao DATE NOT NULL,
+    ThoiHan DATE,
+    TenKhoanThu VARCHAR(100) NOT NULL,
+    BatBuoc BOOLEAN NOT NULL,
+    GhiChu TEXT
+);
+
+CREATE TABLE NopTien (
+    HoKhauId INT NOT NULL REFERENCES HoKhau(soHoKhau),
+    KhoanThuId INT NOT NULL REFERENCES KhoanThu(id),
+    NguoiNop VARCHAR(100),
+    SoTien NUMERIC(12, 2) NOT NULL,
+    NgayNop DATE NOT NULL,
+    PRIMARY KEY (HoKhauId, KhoanThuId)
+);
+
+CREATE TABLE LichSuHoKhau (
+    id SERIAL PRIMARY KEY,
+    NhanKhauId INT NOT NULL REFERENCES NhanKhau(id),
+    HoKhauId INT NOT NULL REFERENCES HoKhau(soHoKhau),
+    LoaiThayDoi INT NOT NULL,
+    ThoiGian DATE NOT NULL
+);
