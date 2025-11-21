@@ -1,3 +1,6 @@
+# Demo để test API, chưa check user và role 
+# Todo: Login & decorators
+
 from flask import Blueprint, request, jsonify
 from app.controllers.nhan_khau_controller import (
     get_all_nhankhau_controller,
