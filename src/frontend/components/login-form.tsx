@@ -48,8 +48,7 @@ export default function LoginForm({ className, ...props }: React.ComponentPropsW
 
                             {/* Button */}
                             <Button type="submit"
-                                className="w-full font-bold bg-[#003555] hover:scale-[1.02]"
-                            >
+                                className="bg-accent-gradient text-white font-medium px-4 py-2 rounded-lg shadow hover:opacity-90 transition">
                                 Đăng nhập hệ thống
                             </Button>
                         </div>
