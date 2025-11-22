@@ -27,7 +27,7 @@ export default function AuthPage() {
             <div className="flex flex-col gap-4 p-6 md:p-10 bg-muted/40">
                 <div className="flex justify-center gap-2 md:justify-start">
                     <a href="#" className="flex items-center gap-2 font-bold text-primary">
-                        <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
+                        <div className="bg-accent-gradient text-white flex size-8 items-center justify-center rounded-md shadow-sm">
                             <GalleryVerticalEnd className="size-5" />
                         </div>
                         Group 4 Inc.

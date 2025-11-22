@@ -1,5 +1,6 @@
 @import "tailwindcss";
-@import "tw-animate-css";
+/* Nếu bạn không cài gói tw-animate-css thì xóa dòng dưới, nhưng thường shadcn cần nó */
+@plugin "tailwindcss-animate"; 
 
 @custom-variant dark (&:is(.dark *));
 
@@ -8,6 +9,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -23,6 +25,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -39,76 +42,115 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from { height: 0 }
+    to { height: var(--radix-accordion-content-height) }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height) }
+    to { height: 0 }
+  }
 }
 
 :root {
   --radius: 0.5rem;
-  --background: 0 0% 100%;
-  --foreground: 203 100% 12%;
-  --card: 0 0% 100%;
-  --card-foreground: 204 100% 12%;
-  --popover:  0 0% 100%;
-  --popover-foreground: 204 100% 12%;
-  --primary: 204 100% 12%; 
-  --primary-foreground: 210 40% 98%; /* Chữ trắng trên nút xanh đen */
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 204 100% 12%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border:  214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 204 100% 12%;
+  --background: #E0F2FE; 
+  --foreground: #0f172a; 
+
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222.2 47.4% 11.2%);
+
+  /* Primary*/
+  --primary: #00253D;
+  --primary-foreground: #ffffff;
+
+  /* Secondary */
+  --secondary: hsl(210 40% 96.1%);
+  --secondary-foreground: hsl(222.2 47.4% 11.2%);
+
+  /* Muted */
+  --muted: hsl(210 40% 96.1%);
+  --muted-foreground: hsl(215.4 16.3% 46.9%);
+
+  /* Accent*/
+  --accent: #06B6D4;
+  --accent-foreground: #ffffff;
+
+  /* Destructive*/
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(210 40% 98%);
+
+  --border: #cdd9e5;
+  --input: #cdd9e5;
+  --ring: #0EA5E9;
+
+  /* Chart colors */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+
+  /* Sidebar variables */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #00253D;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #F1F5F9; /* Slate-100 */
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #0EA5E9;
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: 204 100% 12%; 
-  --primary-foreground: oklch(88.837% 0.0001 271.152);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
+  --background: #0A1A27;
+  --foreground: #E0F2FE;
+
+  --card: #112233;
+  --card-foreground: #E0F2FE;
+
+  --popover: #112233;
+  --popover-foreground: #E0F2FE;
+
+  --primary: #005B6B;
+  --primary-foreground: #ffffff;
+
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+
+  --accent: #0EA5E9;
+  --accent-foreground: #ffffff;
+
+  --destructive: hsl(0 62.8% 30.6%);
+  --destructive-foreground: hsl(210 40% 98%);
+
+  --border: #1e293b;
+  --input: #1e293b;
+  --ring: #0EA5E9;
+
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+
+  --sidebar: #0A1A27;
+  --sidebar-foreground: #E0F2FE;
+  --sidebar-primary: #0EA5E9;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #112233;
+  --sidebar-accent-foreground: #E0F2FE;
+  --sidebar-border: #1e293b;
+  --sidebar-ring: #0EA5E9;
 }
 
 @layer base {
@@ -117,5 +159,15 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+
+@layer utilities {
+  .bg-primary-gradient {
+    background: linear-gradient(135deg, #0f172a 0%, #251e8a 100%);
+  }
+  .bg-accent-gradient {
+    background: linear-gradient(135deg, #1d4ed8 0%, #5b21b6 100%);
   }
 }
