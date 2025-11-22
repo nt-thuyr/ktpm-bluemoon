@@ -1,13 +1,13 @@
-from app.extensions import db
+from ..extensions import db
 
 class KhoanThu(db.Model):
-    __tablename__ = "khoanthu"
+    __tablename__ = "khoan_thu"
 
     id = db.Column(db.Integer, primary_key=True)
-    NgayTao = db.Column(db.Date, nullable=False)
-    ThoiHan = db.Column(db.Date)
-    TenKhoanThu = db.Column(db.String(100), nullable=False)
-    BatBuoc = db.Column(db.Boolean, nullable=False)
-    GhiChu = db.Column(db.Text)
+    ngay_tao = db.Column(db.Date, nullable=False)
+    thoi_han = db.Column(db.Date)
+    ten_khoan_thu = db.Column(db.String(100), nullable=False)
+    ban_buoc = db.Column(db.Boolean, nullable=False)
+    ghi_chu = db.Column(db.Text)
 
     nop_tien = db.relationship("NopTien", back_populates="khoan_thu", cascade="all, delete-orphan")

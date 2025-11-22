@@ -1,20 +1,25 @@
-from app.extensions import db
+from ..extensions import db
+
 
 class NhanKhau(db.Model):
-    __tablename__ = "nhankhau"
+    # 1. Tên bảng
+    __tablename__ = "nhan_khau"
 
     id = db.Column(db.Integer, primary_key=True)
-    HoTen = db.Column(db.String(100), nullable=False)
-    NgaySinh = db.Column(db.Date)
-    GioiTinh = db.Column(db.String(10))
-    DanToc = db.Column(db.String(30))
-    TonGiao = db.Column(db.String(30))
-    cccd = db.Column(db.String(20), unique=True)
-    NgayCap = db.Column(db.Date)
-    NoiCap = db.Column(db.String(100))
-    NgheNghiep = db.Column(db.String(100))
-    GhiChu = db.Column(db.Text)
 
+    # 2. Tên cột (Attributes)
+    ho_ten = db.Column(db.String(100), nullable=False)
+    ngay_sinh = db.Column(db.Date)
+    gioi_tinh = db.Column(db.String(10))
+    dan_toc = db.Column(db.String(30))
+    ton_giao = db.Column(db.String(30))
+    cccd = db.Column(db.String(20), unique=True)
+    ngay_cap = db.Column(db.Date)
+    noi_cap = db.Column(db.String(100))
+    nghe_nghiep = db.Column(db.String(100))
+    ghi_chu = db.Column(db.Text)
+
+    # 3. Relationships
     tam_tru_tam_vang = db.relationship(
         "TamTruTamVang",
         back_populates="nhan_khau",

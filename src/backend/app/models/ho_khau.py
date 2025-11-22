@@ -1,23 +1,16 @@
-from app.extensions import db
+from ..extensions import db
 
 class HoKhau(db.Model):
-    __tablename__ = "hokhau"
+    __tablename__ = "ho_khau"
 
-    SoHoKhau = db.Column(db.Integer, primary_key=True)
-    SoNha = db.Column(db.String(50))
-    Duong = db.Column(db.String(50))
-    Phuong = db.Column(db.String(50))
-    Quan = db.Column(db.String(50))
-    NgayLamHoKhau = db.Column(db.Date)
+    so_ho_khau = db.Column(db.Integer, primary_key=True)
+    so_nha = db.Column(db.String(50))
+    duong = db.Column(db.String(50))
+    phuong = db.Column(db.String(50))
+    quan = db.Column(db.String(50))
+    ngay_lam_ho_khau = db.Column(db.Date)
 
-    ChuHoId = db.Column(
-        db.Integer,
-        db.ForeignKey("nhankhau.id"),
-        nullable=False,
-        unique=True
-    )
-
-    ChuHoId = db.Column(db.Integer, db.ForeignKey("nhankhau.id"), nullable=False, unique=True)
+    chu_ho_id = db.Column(db.Integer, db.ForeignKey("nhan_khau.id"), nullable=False, unique=True)
 
     chu_ho = db.relationship("NhanKhau", back_populates="ho_khau_chu")
 
