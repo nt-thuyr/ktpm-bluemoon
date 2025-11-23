@@ -19,6 +19,7 @@ def get_nhankhau_by_id_controller(id):
 
 def create_nhankhau_controller(payload):
     # Logic: Validate cơ bản
+    # TODO: validate nang cao
     if not payload or "HoTen" not in payload:
         return jsonify({"message": "Thiếu thông tin Họ tên"}), 400
 

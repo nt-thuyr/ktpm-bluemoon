@@ -3,6 +3,7 @@ from ..routes.fees import fees_bp
 from ..routes.payments import payments_bp
 from ..routes.households import households_bp
 from ..routes.nhan_khau import nhan_khau_bp
+from ..routes.ho_khau import ho_khau_bp
 
 def register_routes(app):
     app.register_blueprint(auth_bp, url_prefix="/auth")
@@ -10,4 +11,5 @@ def register_routes(app):
     app.register_blueprint(payments_bp, url_prefix="/payments")
     app.register_blueprint(households_bp, url_prefix="/households")
 
-    app.register_blueprint(nhan_khau_bp, url_prefix="/nhan-khau")
+    app.register_blueprint(nhan_khau_bp, url_prefix="/api/nhan-khau")
+    app.register_blueprint(ho_khau_bp, url_prefix="/api/ho-khau")
