@@ -1,6 +1,12 @@
 import { Button } from "@/components/ui/button"
 import { Plus, Users } from "lucide-react"
 
+// Trang nay gom:
+// Header: Tiêu đề + Breadcrumb 
+// Toolbar: Search input, Filter select, Button "Thêm mới".
+// Table: Hiển thị dữ liệu.
+
+
 export default function ResidentsPage() {
     return (
         <div className="space-y-8">
@@ -16,21 +22,16 @@ export default function ResidentsPage() {
                     </p>
                 </div>
 
-                {/* BUTTON: 
-                    - Bỏ bg-blue-600 đi. 
-                    - Button mặc định đã là bg-primary (xanh đen) + text-primary-foreground (trắng).
-                    - Thêm shadow-md cho nổi.
-                */}
+
                 <Button className="shadow-md font-medium">
                     <Plus className="mr-2 h-4 w-4" /> Thêm cư dân mới
                 </Button>
             </div>
 
             {/* DATA TABLE PLACEHOLDER (Empty State) */}
-            {/* Mình làm khung nét đứt (dashed) để biểu thị đây là chỗ chờ dữ liệu */}
+
             <div className="flex h-[500px] shrink-0 items-center justify-center rounded-md border border-dashed border-slate-300 bg-slate-50/50">
                 <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
-                    {/* Icon minh họa mờ mờ */}
                     <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 mb-4">
                         <Users className="h-10 w-10 text-muted-foreground/40" />
                     </div>
