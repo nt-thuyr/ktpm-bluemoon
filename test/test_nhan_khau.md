@@ -23,7 +23,7 @@ fetch(BASE_URL + '/', {
 .then(data => {
     console.log("✅ Danh sách nhân khẩu:", data);
 })
-.catch(err => console.error('❌ Lỗi:', err));
+.catch(err => console.error('❌ Lỗi kết nối:', err));
 ```
 
 3. Lệnh tạo mới (POST)
@@ -32,19 +32,23 @@ fetch(BASE_URL + '/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-        "ho_ten": "Nguyễn Văn Tét",
-        "ngay_sinh": "2000-01-01",
-        "gioi_tinh": "Nam",
-        "dan_toc": "Kinh",
-        "ton_giao": "Khong",
-        "cccd": "9999" + Math.floor(Math.random() * 10000),
-        "ngay_cap": "2022-01-01",
-        "noi_cap": "Ha Noi",
-        "nghe_nghiep": "Tester",
-        "ghi_chu": "Tao bang lenh fetch"
+        "HoTen": "Nguyễn Văn Tét",
+        "NgaySinh": "2000-01-01", 
+        "GioiTinh": "Nam",        
+        "DanToc": "Kinh",         
+        "TonGiao": "Khong",       
+        "cccd": "9999" + Math.floor(Math.random() * 10000), 
+        "NgayCap": "2022-01-01",  
+        "NoiCap": "Ha Noi",       
+        "NgheNghiep": "Tester",   
+        "GhiChu": "Tao bang lenh fetch" 
     })
 })
-.then(res => res.json())
+.then(async res => {
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || res.statusText);
+    return data;
+})
 .then(data => {
     console.log("✅ Đã tạo thành công! ID mới là:", data.id);
     console.log(data);
@@ -54,26 +58,30 @@ fetch(BASE_URL + '/', {
 
 4. Lệnh cập nhật (PUT)
 ```javascript
-// Thay số 1 bằng ID thực tế bạn muốn sửa
+// ⚠️ Thay số ID bên dưới bằng ID thực tế bạn vừa tạo được ở bước 3
 var idCanSua = 1; 
 
 fetch(BASE_URL + '/' + idCanSua, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-        "ho_ten": "Nguyễn Văn Mới",
-        "nghe_nghiep": "Giam Doc",
-        "ghi_chu": "Update tu Console"
+        "HoTen": "Nguyễn Văn Mới", 
+        "NgheNghiep": "Giam Doc",  
+        "GhiChu": "Update tu Console"
     })
 })
-.then(res => res.json())
+.then(async res => {
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || res.statusText);
+    return data;
+})
 .then(data => console.log("✅ Cập nhật xong:", data))
 .catch(err => console.error('❌ Lỗi:', err));
 ```
 
 5. Lệnh xóa (DELETE)
 ```javascript
-// Thay số 1 bằng ID thực tế bạn muốn xóa
+// ⚠️ Thay số ID thực tế bạn muốn xóa
 var idCanXoa = 1; 
 
 fetch(BASE_URL + '/' + idCanXoa, {
@@ -84,5 +92,5 @@ fetch(BASE_URL + '/' + idCanXoa, {
     if (res.ok) console.log("✅ Đã xóa thành công ID:", idCanXoa);
     else console.log("⚠️ Xóa thất bại, mã lỗi:", res.status);
 })
-.catch(err => console.error('❌ Lỗi:', err));
+.catch(err => console.error('❌ Lỗi kết nối:', err));
 ```

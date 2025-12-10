@@ -1,3 +1,21 @@
+# 🏢 BlueMoon - Condominium Management System
+
+Dự án quản lý chung cư (Group 4).
+- **Backend:** Flask (Python)
+- **Frontend:** Next.js (TypeScript)
+# 🛠 Tech Stack
+| Component | Technology | Details |
+| :--- | :--- | :--- |
+| **Backend** | **Flask** | Python Web Framework |
+| | **PostgreSQL** | Database |
+| | **SQLAlchemy** | ORM |
+| **Frontend** | **Next.js 15** | App Router Framework |
+| | **TypeScript** | Programming Language |
+| | **Tailwind CSS v4** | Styling |
+| | **shadcn/ui** | UI Library |
+| | **Lucide React** | Icons |
+
+---
 # BlueMoon Backend 
 
 ## 1. Project Structure
@@ -94,3 +112,65 @@ Endpoints:
     DELETE  /nhan-khau/<id>      → Delete record
 
 ---
+
+# 🎨 BlueMoon Frontend
+
+## 1. Project Structure
+
+```
+src/frontend/
+├── app/
+│   ├── (dashboard)/       # Main Layout (Sidebar + Header)
+│   │   ├── fees/          # Quản lý thu phí
+│   │   ├── households/    # Quản lý hộ khẩu
+│   │   └── residents/     # Quản lý nhân khẩu
+│   ├── auth/              # Login/Register pages
+│   ├── globals.css        # Global styles
+│   └── layout.tsx         # Root layout
+├── components/
+│   ├── households/        # Feature-specific components
+│   │   ├── CreateHouseholdDialog.tsx
+│   │   ├── HouseholdsTable.tsx
+│   │   └── ...
+│   └── ui/                # Shared components (shadcn/ui)
+├── lib/
+│   ├── types/             # TypeScript definitions
+│   │   ├── household.ts
+│   │   ├── residents.ts
+│   │   └── fees.ts
+│   └── utils.ts           # Utility functions
+└── public/
+```
+
+## 2. How to Run the Frontend
+
+### **Step 1: Navigate to Frontend Directory**
+
+```bash
+cd src/frontend
+```
+
+### **Step 2: Install Dependencies**
+
+```bash
+npm install
+# or
+npm i
+```
+
+### **Step 3: Environment Variables**
+
+Create file `.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://127.0.0.1:5000
+```
+
+### **Step 4: Start Dev Server**
+
+```bash
+npm run dev
+```
+
+👉 App chạy tại: http://localhost:3000
+

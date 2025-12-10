@@ -1,5 +1,4 @@
 @import "tailwindcss";
-/* Nếu bạn không cài gói tw-animate-css thì xóa dòng dưới, nhưng thường shadcn cần nó */
 @plugin "tailwindcss-animate"; 
 
 @custom-variant dark (&:is(.dark *));

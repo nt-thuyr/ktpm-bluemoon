@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button"
-import { Plus, Users } from "lucide-react"
-
+import { CreateResidentDialog } from "@/components/residents/CreateResidentDialog"
+import { ResidentsTable } from "@/components/residents/ResidentsTable"
+import { Users } from "lucide-react"
 // Trang nay gom:
 // Header: Tiêu đề + Breadcrumb 
 // Toolbar: Search input, Filter select, Button "Thêm mới".
@@ -23,9 +23,11 @@ export default function ResidentsPage() {
                 </div>
 
 
-                <Button className="shadow-md font-medium">
+                {/* <Button className="shadow-md font-medium">
                     <Plus className="mr-2 h-4 w-4" /> Thêm cư dân mới
-                </Button>
+                </Button> */}
+                <CreateResidentDialog />
+
             </div>
 
             {/* DATA TABLE PLACEHOLDER (Empty State) */}
@@ -36,17 +38,14 @@ export default function ResidentsPage() {
                         <Users className="h-10 w-10 text-muted-foreground/40" />
                     </div>
 
-                    <h3 className="mt-4 text-lg font-semibold text-primary">
-                        Chưa có dữ liệu hiển thị
-                    </h3>
-                    <p className="mb-4 mt-2 text-sm text-muted-foreground max-w-xs">
+                    <ResidentsTable />
+                    {/* <p className="mb-4 mt-2 text-sm text-muted-foreground max-w-xs">
                         Danh sách cư dân hiện đang trống. Hãy thêm cư dân mới hoặc nhập dữ liệu từ Excel.
-                    </p>
+                    </p> */}
 
-                    {/* Nút phụ demo (Sau này dùng để Import Excel chẳng hạn) */}
-                    <Button variant="outline" className="border-primary/20 text-primary hover:bg-primary/5">
+                    {/* <Button variant="outline" className="border-primary/20 text-primary hover:bg-primary/5">
                         Tải lại dữ liệu
-                    </Button>
+                    </Button> */}
                 </div>
             </div>
         </div>

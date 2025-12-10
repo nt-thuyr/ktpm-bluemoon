@@ -20,6 +20,7 @@ import {
 import { Household } from "@/lib/types/household";
 import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { DeleteHouseholdDialog } from "./DeleteHouseholdDialog";
 
 // Mock data (Sau này sẽ nhận từ props)
 const mockData: Household[] = [
@@ -94,9 +95,20 @@ export function HouseholdsTable({ data = mockData }: HouseholdsTableProps) {
                                         <DropdownMenuItem className="cursor-pointer text-blue-600">
                                             <Pencil className="mr-2 h-4 w-4" /> Chỉnh sửa
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600">
+                                        {/* <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600">
                                             <Trash2 className="mr-2 h-4 w-4" /> Xóa hộ khẩu
-                                        </DropdownMenuItem>
+                                        </DropdownMenuItem> */}
+                                        <DeleteHouseholdDialog
+                                            householdId={item.id}
+                                            trigger={
+                                                <DropdownMenuItem
+                                                    onSelect={(e) => e.preventDefault()}
+                                                    className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                                                >
+                                                    <Trash2 className="mr-2 h-4 w-4" /> Xóa hộ khẩu
+                                                </DropdownMenuItem>
+                                            }
+                                        />
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>
