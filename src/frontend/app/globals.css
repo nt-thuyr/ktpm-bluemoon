@@ -1,5 +1,4 @@
 @import "tailwindcss";
-/* Nếu bạn không cài gói tw-animate-css thì xóa dòng dưới, nhưng thường shadcn cần nó */
 @plugin "tailwindcss-animate"; 
 
 @custom-variant dark (&:is(.dark *));
@@ -57,7 +56,7 @@
 
 :root {
   --radius: 0.5rem;
-  --background: #E0F2FE; 
+  --background: #1e1b4b; 
   --foreground: #0f172a; 
 
   --card: #ffffff;
@@ -67,7 +66,7 @@
   --popover-foreground: hsl(222.2 47.4% 11.2%);
 
   /* Primary*/
-  --primary: #00253D;
+  --primary: #1e1b4b;
   --primary-foreground: #ffffff;
 
   /* Secondary */
@@ -79,8 +78,8 @@
   --muted-foreground: hsl(215.4 16.3% 46.9%);
 
   /* Accent*/
-  --accent: #06B6D4;
-  --accent-foreground: #ffffff;
+  --accent: #e2e8f0;
+  --accent-foreground: #0f172a;
 
   /* Destructive*/
   --destructive: hsl(0 84.2% 60.2%);
@@ -88,7 +87,7 @@
 
   --border: #cdd9e5;
   --input: #cdd9e5;
-  --ring: #0EA5E9;
+  --ring: #4338ca;
 
   /* Chart colors */
   --chart-1: oklch(0.646 0.222 41.116);
