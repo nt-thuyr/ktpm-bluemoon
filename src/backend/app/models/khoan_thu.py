@@ -7,7 +7,7 @@ class KhoanThu(db.Model):
     ngay_tao = db.Column(db.Date, nullable=False)
     thoi_han = db.Column(db.Date)
     ten_khoan_thu = db.Column(db.String(100), nullable=False)
-    ban_buoc = db.Column(db.Boolean, nullable=False)
+    bat_buoc = db.Column(db.Boolean, nullable=False)
     ghi_chu = db.Column(db.Text)
 
     nop_tien = db.relationship("NopTien", back_populates="khoan_thu", cascade="all, delete-orphan")
