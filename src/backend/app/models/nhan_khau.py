@@ -19,7 +19,12 @@ class NhanKhau(db.Model):
     nghe_nghiep = db.Column(db.String(100))
     ghi_chu = db.Column(db.Text)
 
+    # Quan hệ 1-n: Hộ khẩu chứa Nhân khẩu
+    ho_khau_id = db.Column(db.Integer, db.ForeignKey("ho_khau.so_ho_khau"))
+    ngay_them_nhan_khau = db.Column(db.Date)  # ngaythemnhankhau
+    quan_he_voi_chu_ho = db.Column(db.String(50))  # quanhevoichuho
     # 3. Relationships
+
     tam_tru_tam_vang = db.relationship(
         "TamTruTamVang",
         back_populates="nhan_khau",
