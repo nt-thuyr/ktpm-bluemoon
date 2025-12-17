@@ -3,82 +3,61 @@ from sqlalchemy.exc import IntegrityError
 from ..extensions import db
 from ..models.khoan_thu import KhoanThu
 
-
 def parse_date(value):
-    """
-    Chuyển string ISO (YYYY-MM-DD) -> date
-    """
     if not value:
         return None
     if isinstance(value, date):
         return value
     return date.fromisoformat(value)
 
-
-def serialize_khoan_thu(kt: KhoanThu):
+def serialize_khoanthu(kt: KhoanThu):
     return {
         "Id": kt.id,
-        "NgayTao": kt.ngay_tao.isoformat() if kt.ngay_tao else None,
-        "ThoiHan": kt.thoi_han.isoformat() if kt.thoi_han else None,
         "TenKhoanThu": kt.ten_khoan_thu,
+        "SoTien": float(kt.so_tien),
         "BatBuoc": kt.bat_buoc,
         "GhiChu": kt.ghi_chu,
     }
 
+def get_all_khoanthu():
+    rows = KhoanThu.query.order_by(KhoanThu.id.desc()).all()
+    return [serialize_khoanthu(r) for r in rows]
 
-# =========================
-# Query
-# =========================
-def get_all_khoan_thu():
-    rows = KhoanThu.query.order_by(KhoanThu.ngay_tao.desc()).all()
-    return [serialize_khoan_thu(r) for r in rows]
-
-
-def get_khoan_thu_by_id(khoan_thu_id: int):
+def get_khoanthu_by_id(khoan_thu_id: int):
     kt = KhoanThu.query.get(khoan_thu_id)
-    return serialize_khoan_thu(kt) if kt else None
+    return serialize_khoanthu(kt) if kt else None
 
+def create_khoanthu(data: dict):
+    required_fields = ["TenKhoanThu", "SoTien", "BatBuoc"]
 
-# =========================
-# Create
-# =========================
-def create_khoan_thu(data: dict):
-    """
-    Tạo khoản thu mới
-    NgayTao do hệ thống sinh
-    """
-    if not data.get("TenKhoanThu"):
-        return "invalid"
+    for field in required_fields:
+        if field not in data:
+            return "invalid"
 
     try:
         kt = KhoanThu(
-            ngay_tao=date.today(),
-            thoi_han=parse_date(data.get("ThoiHan")),
             ten_khoan_thu=data["TenKhoanThu"],
-            bat_buoc=bool(data.get("BatBuoc", False)),
+            so_tien=data["SoTien"],
+            bat_buoc=bool(data["BatBuoc"]),
             ghi_chu=data.get("GhiChu"),
         )
+
         db.session.add(kt)
         db.session.commit()
-        return serialize_khoan_thu(kt)
+        return serialize_khoanthu(kt)
 
     except IntegrityError:
         db.session.rollback()
         return "conflict"
 
-
-# =========================
-# Update
-# =========================
-def update_khoan_thu(khoan_thu_id: int, data: dict):
+def update_khoanthu(khoan_thu_id: int, data: dict):
     kt = KhoanThu.query.get(khoan_thu_id)
     if not kt:
         return None
 
-    # Chỉ cho phép update các trường an toàn
     allowed_fields = {
-        "ThoiHan": "thoi_han",
         "TenKhoanThu": "ten_khoan_thu",
+        "SoTien": "so_tien",
         "BatBuoc": "bat_buoc",
         "GhiChu": "ghi_chu",
     }
@@ -91,39 +70,29 @@ def update_khoan_thu(khoan_thu_id: int, data: dict):
 
         value = data[json_key]
 
-        # Parse date nếu cần
-        if model_attr == "thoi_han":
-            value = parse_date(value)
-
-        # Tránh update vô nghĩa
         if getattr(kt, model_attr) != value:
             setattr(kt, model_attr, value)
             has_change = True
 
     if not has_change:
-        return serialize_khoan_thu(kt)
+        return serialize_khoanthu(kt)
 
     try:
         db.session.commit()
-        return serialize_khoan_thu(kt)
+        return serialize_khoanthu(kt)
     except IntegrityError:
         db.session.rollback()
         return "conflict"
 
-
-# =========================
-# Delete
-# =========================
-def delete_khoan_thu(khoan_thu_id: int):
+def delete_khoanthu(khoan_thu_id: int):
     kt = KhoanThu.query.get(khoan_thu_id)
     if not kt:
         return False
 
-    # Ràng buộc nghiệp vụ:
-    # Không cho xóa khoản thu đã có nộp tiền
     if kt.nop_tien and len(kt.nop_tien) > 0:
         return "has_payment"
 
     db.session.delete(kt)
     db.session.commit()
     return True
+

@@ -1,62 +1,59 @@
 from flask import jsonify
 from ..services.khoan_thu_service import (
-    get_all_khoan_thu,
-    get_khoan_thu_by_id,
-    create_khoan_thu,
-    update_khoan_thu,
-    delete_khoan_thu
+    get_all_khoanthu,
+    get_khoanthu_by_id,
+    create_khoanthu,
+    update_khoanthu,
+    delete_khoanthu,
 )
 
-
-def get_all_khoan_thu_controller():
-    data = get_all_khoan_thu()
+def get_all_khoanthu_controller():
+    data = get_all_khoanthu()
     return jsonify(data), 200
 
-
-def get_khoan_thu_by_id_controller(id):
-    data = get_khoan_thu_by_id(id)
+def get_khoanthu_by_id_controller(khoan_thu_id):
+    data = get_khoanthu_by_id(khoan_thu_id)
     if not data:
         return jsonify({"message": "Không tìm thấy khoản thu"}), 404
     return jsonify(data), 200
 
-
-def create_khoan_thu_controller(payload):
-    if not payload or "TenKhoanThu" not in payload:
-        return jsonify({"message": "Thiếu thông tin Tên khoản thu"}), 400
-
-    result = create_khoan_thu(payload)
-
-    if result == "invalid":
+def create_khoanthu_controller(payload):
+    if not payload:
         return jsonify({"message": "Dữ liệu không hợp lệ"}), 400
 
+    result = create_khoanthu(payload)
+
+    if result == "invalid":
+        return jsonify({"message": "Thiếu thông tin bắt buộc"}), 400
+
     if result == "conflict":
-        return jsonify({"message": "Khoản thu đã tồn tại"}), 409
+        return jsonify({"message": "Khoản thu đã tồn tại hoặc dữ liệu không hợp lệ"}), 409
 
     return jsonify(result), 201
 
-
-def update_khoan_thu_controller(id, payload):
+def update_khoanthu_controller(khoan_thu_id, payload):
     if not payload:
-        return jsonify({"message": "Không có dữ liệu cập nhật"}), 400
+        return jsonify({"message": "Dữ liệu không hợp lệ"}), 400
 
-    result = update_khoan_thu(id, payload)
+    result = update_khoanthu(khoan_thu_id, payload)
 
     if result is None:
-        return jsonify({"message": "Không tìm thấy khoản thu để sửa"}), 404
+        return jsonify({"message": "Không tìm thấy khoản thu"}), 404
 
     if result == "conflict":
-        return jsonify({"message": "Thông tin cập nhật bị trùng lặp"}), 409
+        return jsonify({"message": "Cập nhật thất bại do xung đột dữ liệu"}), 409
 
     return jsonify(result), 200
 
+def delete_khoanthu_controller(khoan_thu_id):
+    result = delete_khoanthu(khoan_thu_id)
 
-def delete_khoan_thu_controller(id):
-    result = delete_khoan_thu(id)
-
-    if result is None:
-        return jsonify({"message": "Không tìm thấy khoản thu để xóa"}), 404
+    if result is False:
+        return jsonify({"message": "Không tìm thấy khoản thu"}), 404
 
     if result == "has_payment":
-        return jsonify({"message": "Khoản thu đã phát sinh nộp tiền, không thể xóa"}), 409
+        return jsonify({
+            "message": "Không thể xóa khoản thu đã có bản ghi nộp tiền"
+        }), 409
 
-    return jsonify({"message": "Đã xóa thành công"}), 200
+    return jsonify({"message": "Đã xóa khoản thu thành công"}), 200

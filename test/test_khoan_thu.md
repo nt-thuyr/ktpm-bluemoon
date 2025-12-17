@@ -33,7 +33,7 @@ fetch(BASE_URL + '/', {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
         "TenKhoanThu": "Phí dịch vụ tháng " + (Math.floor(Math.random() * 12) + 1),
-        "ThoiHan": "2025-12-31",
+        "SoTien": 150000,
         "BatBuoc": true,
         "GhiChu": "Tạo bằng fetch từ Console"
     })
@@ -54,7 +54,6 @@ fetch(BASE_URL + '/', {
 4. Lệnh cập nhật (PUT)
 ```javascript
 // ⚠️ Thay số ID bên dưới bằng ID thực tế bạn vừa tạo được ở bước 3
-
 var idCanSua = 1;
 
 fetch(BASE_URL + '/' + idCanSua, {
@@ -62,7 +61,7 @@ fetch(BASE_URL + '/' + idCanSua, {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
         "TenKhoanThu": "Phí dịch vụ đã cập nhật",
-        "ThoiHan": "2026-01-31",
+        "SoTien": 200000,
         "GhiChu": "Update từ Console JS"
     })
 })
