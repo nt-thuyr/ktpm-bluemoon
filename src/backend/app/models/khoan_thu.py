@@ -10,4 +10,3 @@ class KhoanThu(db.Model):
     ghi_chu = db.Column(db.Text)
 
     nop_tien = db.relationship("NopTien", back_populates="khoan_thu", cascade="all, delete-orphan")
-

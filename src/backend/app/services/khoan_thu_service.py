@@ -2,13 +2,35 @@ from datetime import date
 from sqlalchemy.exc import IntegrityError
 from ..extensions import db
 from ..models.khoan_thu import KhoanThu
-
+# TODO: sử dụng marshmallow để validate input thay vì mapping thủ công
 def parse_date(value):
     if not value:
         return None
     if isinstance(value, date):
         return value
     return date.fromisoformat(value)
+
+# Helper: normalize input keys (support both camel/PascalCase and snake_case)
+def _normalize_khoanthu_input(data: dict) -> dict:
+    if not isinstance(data, dict):
+        return data
+    mapping = {
+        "TenKhoanThu": ["TenKhoanThu", "ten_khoan_thu", "tenKhoanThu"],
+        "SoTien": ["SoTien", "so_tien", "soTien"],
+        "BatBuoc": ["BatBuoc", "bat_buoc", "batBuoc"],
+        "GhiChu": ["GhiChu", "ghi_chu", "ghiChu"],
+    }
+    out = {}
+    for key, aliases in mapping.items():
+        for a in aliases:
+            if a in data:
+                out[key] = data[a]
+                break
+    # preserve any other fields
+    for k, v in data.items():
+        if k not in sum(mapping.values(), []):
+            out[k] = v
+    return out
 
 def serialize_khoanthu(kt: KhoanThu):
     return {
@@ -28,6 +50,7 @@ def get_khoanthu_by_id(khoan_thu_id: int):
     return serialize_khoanthu(kt) if kt else None
 
 def create_khoanthu(data: dict):
+    data = _normalize_khoanthu_input(data)
     required_fields = ["TenKhoanThu", "SoTien", "BatBuoc"]
 
     for field in required_fields:
@@ -51,6 +74,7 @@ def create_khoanthu(data: dict):
         return "conflict"
 
 def update_khoanthu(khoan_thu_id: int, data: dict):
+    data = _normalize_khoanthu_input(data)
     kt = KhoanThu.query.get(khoan_thu_id)
     if not kt:
         return None
@@ -95,4 +119,3 @@ def delete_khoanthu(khoan_thu_id: int):
     db.session.delete(kt)
     db.session.commit()
     return True
-
