@@ -1,3 +1,4 @@
+# routes/__init__.py
 from ..routes.auth import auth_bp
 from ..routes.nhan_khau import nhan_khau_bp
 from ..routes.ho_khau import ho_khau_bp

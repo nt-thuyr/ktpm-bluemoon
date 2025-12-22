@@ -1,8 +1,12 @@
+from flask_cors import CORS
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 
 db = SQLAlchemy()
 jwt = JWTManager()
+migrate = Migrate()
+cors = CORS()
 
 # Trong thực tế nên dùng Redis. Ở đây dùng set() lưu trên RAM để demo.
 # Lưu ý: Khi restart server, set này sẽ mất (token cũ lại dùng được).
