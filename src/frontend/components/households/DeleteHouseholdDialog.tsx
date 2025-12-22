@@ -38,14 +38,14 @@ export function DeleteHouseholdDialog({ householdId, trigger }: DeleteHouseholdD
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle className="text-red-600">Xác nhận xóa Hộ Khẩu?</AlertDialogTitle>
-                    <AlertDialogDescription>
+                    <AlertDialogDescription className="text-white">
                         Hành động này không thể hoàn tác. Toàn bộ thông tin về hộ khẩu
-                        <span className="font-bold text-slate-900 mx-1">{householdId}</span>
+                        <span className="font-bold text-slate mx-1">{householdId}</span>
                         và lịch sử cư trú liên quan sẽ bị xóa khỏi hệ thống.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Hủy bỏ</AlertDialogCancel>
+                    <AlertDialogCancel className="text-white">Hủy bỏ</AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleDelete}
                         className="bg-red-600 hover:bg-red-700 text-white border-none"

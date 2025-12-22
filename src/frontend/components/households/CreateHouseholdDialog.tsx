@@ -58,21 +58,21 @@ export function CreateHouseholdDialog() {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button className="bg-primary-gradient shadow-md">
+                <Button className="shadow-md">
                     <Plus className="mr-2 h-4 w-4" /> Thêm hộ khẩu
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                    <DialogTitle className="text-blue-900">Thêm hộ khẩu mới</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle className="text-xl font-bold text-white">Thêm hộ khẩu mới</DialogTitle>
+                    <DialogDescription className="text-white/90">
                         Nhập thông tin cơ bản của hộ. Sau khi tạo, bạn có thể thêm thành viên vào hộ này.
                     </DialogDescription>
                 </DialogHeader>
 
-                <Form {...form}>
+                <Form {...form} >
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2 border p-3 rounded-md bg-slate-50">
                             <FormField control={form.control} name="soHoKhau" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Số Hộ Khẩu (ID)</FormLabel>
@@ -88,22 +88,21 @@ export function CreateHouseholdDialog() {
                                     <FormMessage />
                                 </FormItem>
                             )} />
+                            <FormField control={form.control} name="tenChuHo" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Họ tên Chủ Hộ (Dự kiến)</FormLabel>
+                                    <FormControl><Input placeholder="Nhập tên chủ hộ..." {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
                         </div>
-
-                        <FormField control={form.control} name="tenChuHo" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Họ tên Chủ Hộ (Dự kiến)</FormLabel>
-                                <FormControl><Input placeholder="Nhập tên chủ hộ..." {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
 
                         <div className="space-y-2 border p-3 rounded-md bg-slate-50">
                             <h4 className="text-sm font-medium text-muted-foreground">Địa chỉ thường trú</h4>
                             <div className="grid grid-cols-2 gap-4">
                                 <FormField control={form.control} name="soNha" render={({ field }) => (
                                     <FormItem>
-                                        <FormControl><Input placeholder="Số nhà" {...field} /></FormControl>
+                                        <FormControl><Input placeholder="Số nhà" className="bg-white shadow-sm" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />

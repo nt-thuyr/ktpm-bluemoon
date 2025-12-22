@@ -7,13 +7,13 @@ import { cn } from "@/lib/utils"
 export default function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
-            <Card className="shadow-xl sm:w-[360px]">
+            <Card className="shadow-lg border-none sm:w-[360px]">
                 <CardHeader className="text-center ">
                     <CardTitle className="text-xl font-bold text-primary">
-                        Đăng nhập vào hệ thống
+                        Đăng nhập
                     </CardTitle>
                     <CardDescription>
-                        Nhập thông tin tài khoản
+                        Nhập email và mật khẩu để truy cập hệ thống
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -48,7 +48,7 @@ export default function LoginForm({ className, ...props }: React.ComponentPropsW
 
                             {/* Button */}
                             <Button type="submit"
-                                className="bg-accent-gradient text-white font-medium px-4 py-2 rounded-lg shadow hover:opacity-90 transition">
+                                className="w-full text-base font-medium px-4 py-2 rounded-lg shadow hover:opacity-90 transition">
                                 Đăng nhập hệ thống
                             </Button>
                         </div>
