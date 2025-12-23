@@ -1,6 +1,10 @@
-from marshmallow import Schema, fields, validate, pre_load
+from marshmallow import Schema, fields, validate, pre_load, EXCLUDE
+
 
 class KhoanThuSchema(Schema):
+    class Meta:
+        unknown = EXCLUDE
+
     id = fields.Int(dump_only=True, data_key="Id")
 
     ten_khoan_thu = fields.Str(

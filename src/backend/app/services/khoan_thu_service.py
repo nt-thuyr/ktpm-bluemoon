@@ -3,14 +3,12 @@ from ..models.khoan_thu import KhoanThu
 from ..schemas.khoan_thu_schema import KhoanThuSchema
 from sqlalchemy.exc import IntegrityError
 
-# Khởi tạo instance schema
 khoan_thu_schema = KhoanThuSchema()
 list_khoan_thu_schema = KhoanThuSchema(many=True)
 
 
 def get_all_khoanthu():
     rows = KhoanThu.query.order_by(KhoanThu.id.desc()).all()
-    # Tự động thực hiện serialize_khoanthu cho cả danh sách
     return list_khoan_thu_schema.dump(rows)
 
 
@@ -20,13 +18,11 @@ def get_khoanthu_by_id(khoan_thu_id: int):
 
 
 def create_khoanthu(data: dict):
-    # Validate và chuyển đổi key sang snake_case
     errors = khoan_thu_schema.validate(data)
     if errors:
-        return "invalid"  # Hoặc trả về errors để Controller hiển thị chi tiết
+        return "invalid"
 
     try:
-        # Load dữ liệu đã chuẩn hóa
         validated_data = khoan_thu_schema.load(data)
         kt = KhoanThu(**validated_data)
 
@@ -44,7 +40,6 @@ def update_khoanthu(khoan_thu_id: int, data: dict):
     if not kt:
         return None
 
-    # Partial load giúp chỉ validate và lấy các trường có trong data gửi lên
     errors = khoan_thu_schema.validate(data, partial=True)
     if errors:
         return "invalid"
