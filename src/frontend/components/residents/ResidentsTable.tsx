@@ -18,16 +18,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Resident } from "@/lib/types/resident"
+import { absenceRegistrationsMock } from "@/lib/mocks/absence.mock"
+import { residentsMock } from "@/lib/mocks/residents.mock"
+import { Resident } from "@/lib/types/models/resident"
 import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { DeleteResidentDialog } from "./DeleteResidentDialog"
 import { EditResidentDialog } from "./EditResidentDialog"
+const getResidenceStatus = (residentId: number) => {
+  const record = absenceRegistrationsMock.find(
+    (r) => r.residentId === String(residentId)
+  );
 
-
+  if (!record) return "ThuongTru";
+  return record.loaiHinh; // "TamTru" | "TamVang"
+};
 // Hàm tiện ích: Render Badge trạng thái
-const getStatusBadge = (status: Resident["trangThai"]) => {
+const getStatusBadge = (status: "ThuongTru" | "TamTru" | "TamVang") => {
   switch (status) {
     case "ThuongTru":
       return (
@@ -43,69 +51,25 @@ const getStatusBadge = (status: Resident["trangThai"]) => {
       );
     case "TamVang":
       return (
-        <Badge variant="outline" className="text-slate-500 border-slate-300 bg-slate-50 shadow-none font-medium">
+        <Badge className="text-slate-500 border-slate-300 bg-slate-50 shadow-none font-medium">
           Tạm vắng
         </Badge>
       );
-    default:
-      return <Badge variant="outline">{status}</Badge>;
   }
 };
+//Format ngày tháng (Hỗ trợ cả String ISO lẫn Date Object)
+const formatDate = (date: string | Date | null | undefined) => {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toLocaleDateString('vi-VN'); // Trả về dd/mm/yyyy
+}
 
-// Mock Data để test hiển thị
-const mockData: Resident[] = [
-  {
-    id: "CD001",
-    hoTen: "Nguyễn Văn A",
-    ngaySinh: "1985-05-20",
-    gioiTinh: "Nam",
-    danToc: "Kinh",
-    tonGiao: "Không",
-    cccd: "001085000123",
-    ngayCapCccd: "2021-01-01",
-    noiCapCccd: "Cục CS QLHC",
-    ngheNghiep: "Kỹ sư phần mềm",
-    householdId: "HK001",
-    quanHeVoiChuHo: "Chủ hộ",
-    trangThai: "ThuongTru"
-  },
-  {
-    id: "CD002",
-    hoTen: "Trần Thị B",
-    ngaySinh: "1990-10-15",
-    gioiTinh: "Nữ",
-    danToc: "Kinh",
-    tonGiao: "Không",
-    cccd: "001090000456",
-    ngayCapCccd: "2021-02-15",
-    noiCapCccd: "Cục CS QLHC",
-    ngheNghiep: "Giáo viên",
-    householdId: "HK001",
-    quanHeVoiChuHo: "Vợ",
-    trangThai: "ThuongTru"
-  },
-  {
-    id: "CD003",
-    hoTen: "Lê Văn C",
-    ngaySinh: "2000-12-01",
-    gioiTinh: "Nam",
-    danToc: "Kinh",
-    tonGiao: "Thiên chúa",
-    cccd: "001200000789",
-    ngayCapCccd: "2022-05-20",
-    noiCapCccd: "Hà Nội",
-    ngheNghiep: "Sinh viên",
-    householdId: "HK002",
-    quanHeVoiChuHo: "Cháu",
-    trangThai: "TamTru"
-  }
-];
 
 interface ResidentsTableProps {
   data?: Resident[];
 }
 
-export function ResidentsTable({ data = mockData }: ResidentsTableProps) {
+export function ResidentsTable({ data = residentsMock }: ResidentsTableProps) {
   const [tableData, setTableData] = useState<Resident[]>(data);
 
   const [editingResident, setEditingResident] = useState<Resident | null>(null);
@@ -164,7 +128,7 @@ export function ResidentsTable({ data = mockData }: ResidentsTableProps) {
                   {index + 1}
                 </TableCell>
 
-                {/* Cột Họ Tên + Avatar */}
+                {/* Cột Họ Tên*/}
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col">
@@ -177,14 +141,14 @@ export function ResidentsTable({ data = mockData }: ResidentsTableProps) {
                 {/* Cột Thông tin cá nhân (Ngày sinh + Giới tính) */}
                 <TableCell>
                   <div className="flex flex-col text-sm">
-                    <span className="text-slate-700">{item.ngaySinh}</span>
+                    <span className="text-slate-700">{formatDate(item.ngaySinh)}</span>
                     <span className="text-xs text-muted-foreground">{item.gioiTinh} • {item.danToc}</span>
                   </div>
                 </TableCell>
 
                 {/* Cột CCCD */}
                 <TableCell className="font-mono text-sm text-slate-600">
-                  {item.cccd}
+                  {item.cccd ? item.cccd : <span className="text-muted-foreground italic text-xs">--</span>}
                 </TableCell>
 
                 {/* Cột Hộ khẩu + Quan hệ */}
@@ -205,7 +169,7 @@ export function ResidentsTable({ data = mockData }: ResidentsTableProps) {
 
                 {/* Cột Trạng thái */}
                 <TableCell>
-                  {getStatusBadge(item.trangThai)}
+                  {getStatusBadge(getResidenceStatus(Number(item.id)))}
                 </TableCell>
 
                 {/* Cột Thao tác */}

@@ -26,11 +26,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { Resident } from "@/lib/types/models/resident"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plus, Save, User } from "lucide-react"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-
 // 1. Định nghĩa Schema Validation
 const formSchema = z.object({
     hoTen: z.string().min(2, "Tên phải lớn hơn 2 ký tự"),
@@ -39,14 +39,18 @@ const formSchema = z.object({
     cccd: z.string().min(9, "CCCD phải từ 9-12 số").max(12),
     sdt: z.string().optional(),
     ngheNghiep: z.string().optional(),
-
+    danToc: z.string().optional(),
     // Phần liên kết hộ khẩu
     householdId: z.string().min(1, "Phải nhập mã hộ khẩu"),
     quanHe: z.string().min(1, "Chọn quan hệ"),
     trangThai: z.string().min(1, "Chọn trạng thái cư trú"),
 })
+interface CreateResidentDialogProps {
+    onCreate: (resident: Resident) => void
+}
 
-export function CreateResidentDialog() {
+export function CreateResidentDialog({ onCreate }: CreateResidentDialogProps) {
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -55,10 +59,32 @@ export function CreateResidentDialog() {
             gioiTinh: "Nam",
             trangThai: "ThuongTru",
             householdId: "",
+            danToc: "",
+            quanHe: "ChuHo",
+            ngaySinh: "",
+            ngheNghiep: ""
         },
     })
 
     function onSubmit(values: z.infer<typeof formSchema>) {
+        const newResident: Resident = {
+            id: crypto.randomUUID(), // mock ID
+            hoTen: values.hoTen,
+            ngaySinh: values.ngaySinh, // string YYYY-MM-DD ✔
+            gioiTinh: values.gioiTinh as "Nam" | "Nu" | "Khac",
+            cccd: values.cccd,
+            ngheNghiep: values.ngheNghiep ?? "",
+            householdId: values.householdId,
+            quanHeVoiChuHo: values.quanHe,
+            danToc: values.danToc ?? "",
+            tonGiao: "",
+            ngayCap: null,
+            noiCap: "",
+            ghiChu: "",
+            ngayThemNhanKhau: new Date().toISOString(),
+            // ⚠️ trạng thái sau này lấy từ absence-registration
+        }
+        onCreate(newResident)
         console.log("Submit Resident:", values)
         alert("Đã thêm cư dân: " + values.hoTen)
     }

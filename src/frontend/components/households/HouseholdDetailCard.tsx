@@ -1,7 +1,7 @@
-import { Household } from "@/lib/types/household";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, UserCheck } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Household } from "@/lib/types/models/household";
+import { Calendar, MapPin, UserCheck } from "lucide-react";
 
 interface HouseholdDetailCardProps {
     household: Household;

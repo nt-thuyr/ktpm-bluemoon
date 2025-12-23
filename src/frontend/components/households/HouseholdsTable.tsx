@@ -17,7 +17,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Household } from "@/lib/types/household";
+import { Household } from "@/lib/types/models/household";
 import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { DeleteHouseholdDialog } from "./DeleteHouseholdDialog";

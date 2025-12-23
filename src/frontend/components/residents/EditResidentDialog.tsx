@@ -25,7 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Resident } from "@/lib/types/resident"
+import { Resident } from "@/lib/types/models/resident"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { RefreshCw, Save, User } from "lucide-react"
 import { useEffect } from "react"
@@ -41,7 +41,6 @@ const formSchema = z.object({
     ngheNghiep: z.string().optional(),
     householdId: z.string().min(1, "Phải nhập mã hộ khẩu"),
     quanHe: z.string().min(1, "Chọn quan hệ"),
-    trangThai: z.string().min(1, "Chọn trạng thái cư trú"),
 })
 
 interface EditResidentDialogProps {
@@ -58,10 +57,9 @@ export function EditResidentDialog({ open, onOpenChange, resident, onSave }: Edi
             hoTen: "",
             cccd: "",
             gioiTinh: "Nam",
-            trangThai: "ThuongTru",
             householdId: "",
-            sdt: "",
-            ngheNghiep: ""
+            ngheNghiep: "",
+            ngaySinh: ""
         },
     })
 
@@ -70,14 +68,14 @@ export function EditResidentDialog({ open, onOpenChange, resident, onSave }: Edi
         if (resident) {
             form.reset({
                 hoTen: resident.hoTen,
-                ngaySinh: resident.ngaySinh,
+                ngaySinh: resident.ngaySinh
+                    ? new Date(resident.ngaySinh).toISOString().split("T")[0]
+                    : "",
                 gioiTinh: resident.gioiTinh as string,
-                cccd: resident.cccd,
+                cccd: resident.cccd ?? "",
                 ngheNghiep: resident.ngheNghiep || "",
-                // sdt: resident.sdt || "",
-                householdId: resident.householdId,
-                quanHe: resident.quanHeVoiChuHo,
-                trangThai: resident.trangThai,
+                householdId: resident.householdId ?? "",
+                quanHe: resident.quanHeVoiChuHo ?? "",
             })
         }
     }, [resident, form]);
@@ -87,21 +85,18 @@ export function EditResidentDialog({ open, onOpenChange, resident, onSave }: Edi
         // // Gọi API update ở đây
         if (!resident) return;
 
-        // Gộp ID cũ với thông tin mới vừa nhập
+        // cập nhật dữ liệu mới nếu có thay đổi
         const newData: Resident = {
-            ...resident, // Giữ lại ID và các trường cũ
-            ...values,   // Ghi đè các trường mới sửa
-            // Ép kiểu lại cho khớp (do form trả về string, type Resident cần type cụ thể)
+            ...resident,
+            ...values,
             gioiTinh: values.gioiTinh as "Nam" | "Nữ" | "Khác",
-            trangThai: values.trangThai as "ThuongTru" | "TamTru" | "TamVang",
             quanHeVoiChuHo: values.quanHe, // Map lại tên trường nếu khác nhau
         };
 
-        // GỌI HÀM NÀY ĐỂ BÁO LẠI CHO BẢNG
         onSave(newData);
         alert("Đã cập nhật thông tin: " + values.hoTen)
 
-        onOpenChange(false); // Đóng dialog sau khi lưu
+        onOpenChange(false);
     }
 
     return (
@@ -194,20 +189,6 @@ export function EditResidentDialog({ open, onOpenChange, resident, onSave }: Edi
                                                 <SelectItem value="Con">Con cái</SelectItem>
                                                 <SelectItem value="BoMe">Bố / Mẹ</SelectItem>
                                                 <SelectItem value="Khac">Khác</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
-                                <FormField control={form.control} name="trangThai" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-slate-700 font-semibold">Trạng thái</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <FormControl><SelectTrigger className="bg-white border-slate-300"><SelectValue /></SelectTrigger></FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="ThuongTru">Thường trú</SelectItem>
-                                                <SelectItem value="TamTru">Tạm trú</SelectItem>
-                                                <SelectItem value="TamVang">Tạm vắng</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />

@@ -1,69 +1,74 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertCircle, CreditCard, Users } from "lucide-react"
+"use client"
+
+import { AccountantDashboard } from "@/components/dashboard/accountant-view";
+import { ManagerDashboard } from "@/components/dashboard/manager-view";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { useState } from "react";
+
+// Định nghĩa các Role
+type UserRole = "ADMIN" | "MANAGER" | "ACCOUNTANT";
 
 export default function DashboardPage() {
+  // STATE GIẢ LẬP: Dùng để test chuyển đổi giao diện ngay trên màn hình
+  // Sau này có Auth thật thì thay bằng: const { user } = useAuth();
+  const [currentRole, setCurrentRole] = useState<UserRole>("MANAGER");
+
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold tracking-tight text-primary">
-        Tổng quan tháng 11/2024
-      </h2>
 
-      {/* 3 cái thẻ Card thống kê nhanh */}
-      <div className="grid gap-6 md:grid-cols-3">
-
-        {/* CARD 1: Doanh thu */}
-        <Card className="shadow-md border-slate-100 hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Tổng doanh thu
-            </CardTitle>
-            {/* Icon tiền tệ */}
-            <CreditCard className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            {/* Dùng text-primary (xanh đen) hoặc text-blue-600 nếu muốn nổi hẳn */}
-            <div className="text-2xl font-bold text-primary">150.000.000 đ</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <span className="text-emerald-600 font-medium">+20.1%</span> so với tháng trước
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* CARD 2: Cảnh báo đóng phí */}
-        <Card className="shadow-md border-slate-100 hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Căn hộ chưa đóng phí
-            </CardTitle>
-            {/* Icon cảnh báo màu đỏ */}
-            <AlertCircle className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">12 Căn</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Cần nhắc nhở ngay
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* CARD 3: Cư dân */}
-        <Card className="shadow-md border-slate-100 hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Tổng cư dân
-            </CardTitle>
-            {/* Icon người */}
-            <Users className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">450</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Người đang sinh sống
-            </p>
-          </CardContent>
-        </Card>
-
+      {/* --- KHU VỰC DEV TOOL (Xóa khi deploy) --- */}
+      <div className="flex items-center gap-4 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+        <span className="text-sm font-bold text-yellow-800">🛠️ DEV MODE: Giả lập vai trò user</span>
+        <Select
+          value={currentRole}
+          onValueChange={(val) => setCurrentRole(val as UserRole)}
+        >
+          <SelectTrigger className="w-[180px] bg-white">
+            <SelectValue placeholder="Chọn vai trò" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="MANAGER">Quản lý Cư dân</SelectItem>
+            <SelectItem value="ACCOUNTANT">Kế toán Thu phí</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+      {/* ------------------------------------------- */}
+
+      {/* LOGIC HIỂN THỊ */}
+
+      {/* 1. View cho Quản Lý */}
+      {currentRole === "MANAGER" && (
+        <ManagerDashboard />
+      )}
+
+      {/* 2. View cho Kế Toán */}
+      {currentRole === "ACCOUNTANT" && (
+        <AccountantDashboard />
+      )}
+
+      {/* 3. View cho Admin (Thấy cả 2 hoặc một dashboard tổng hợp riêng) */}
+      {currentRole === "ADMIN" && (
+        <div className="space-y-8">
+          <div className="border-l-4 border-primary pl-4">
+            <h3 className="text-lg font-bold text-slate-500 mb-2">Góc nhìn Quản trị cư dân</h3>
+            <ManagerDashboard />
+          </div>
+
+          <div className="border-t border-slate-200" />
+
+          <div className="border-l-4 border-green-600 pl-4">
+            <h3 className="text-lg font-bold text-slate-500 mb-2">Góc nhìn Tài chính</h3>
+            <AccountantDashboard />
+          </div>
+        </div>
+      )}
+
     </div>
-  )
+  );
 }

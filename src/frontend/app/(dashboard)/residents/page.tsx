@@ -1,6 +1,10 @@
+"use client"
 import { CreateResidentDialog } from "@/components/residents/CreateResidentDialog"
 import { ResidentsTable } from "@/components/residents/ResidentsTable"
+import { residentsMock } from "@/lib/mocks/residents.mock"
+import { Resident } from "@/lib/types/models/resident"
 import { Users } from "lucide-react"
+import { useState } from "react"
 // Trang nay gom:
 // Header: Tiêu đề + Breadcrumb 
 // Toolbar: Search input, Filter select, Button "Thêm mới".
@@ -8,6 +12,11 @@ import { Users } from "lucide-react"
 
 
 export default function ResidentsPage() {
+    const [residents, setResidents] = useState<Resident[]>(residentsMock)
+
+    const handleCreateResident = (newResident: Resident) => {
+        setResidents(prev => [...prev, newResident])
+    }
     return (
         <div className="space-y-8">
             {/* HEADER SECTION */}
@@ -26,12 +35,11 @@ export default function ResidentsPage() {
                 {/* <Button className="shadow-md font-medium">
                     <Plus className="mr-2 h-4 w-4" /> Thêm cư dân mới
                 </Button> */}
-                <CreateResidentDialog />
+                <CreateResidentDialog onCreate={handleCreateResident} />
 
             </div>
 
-            {/* DATA TABLE PLACEHOLDER (Empty State) */}
-
+            {/* TABLE SECTION */}
             <div className="flex h-[500px] shrink-0 items-center justify-center rounded-md border border-dashed border-slate-300 bg-slate-50/50">
                 <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
                     <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 mb-4">
@@ -39,13 +47,6 @@ export default function ResidentsPage() {
                     </div>
 
                     <ResidentsTable />
-                    {/* <p className="mb-4 mt-2 text-sm text-muted-foreground max-w-xs">
-                        Danh sách cư dân hiện đang trống. Hãy thêm cư dân mới hoặc nhập dữ liệu từ Excel.
-                    </p> */}
-
-                    {/* <Button variant="outline" className="border-primary/20 text-primary hover:bg-primary/5">
-                        Tải lại dữ liệu
-                    </Button> */}
                 </div>
             </div>
         </div>
