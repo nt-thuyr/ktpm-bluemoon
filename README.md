@@ -101,7 +101,8 @@ Server will run at:
 
 Base URL:
     
-    /nhan-khau
+    /api/nhan-khau
+    /api/ho-khau
 
 Endpoints:
 
@@ -110,6 +111,7 @@ Endpoints:
     POST    /nhan-khau/          → Create new record
     PUT     /nhan-khau/<id>      → Update record
     DELETE  /nhan-khau/<id>      → Delete record
+    ...
 
 ---
 

@@ -1,10 +1,17 @@
 from ..extensions import db
 from ..models.nhan_khau import NhanKhau
 from sqlalchemy.exc import IntegrityError
+from datetime import datetime
+
+# Helper: Convert string 'YYYY-MM-DD' -> Python Date object
+def parse_date(date_str):
+    if not date_str: return None
+    try:
+        return datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError: return None
 
 
 def serialize_nhankhau(nk: NhanKhau):
-    # Logic: Phải gọi đúng tên biến đã khai báo trong Model (ho_ten, ngay_sinh...)
     return {
         "id": nk.id,
         "HoTen": nk.ho_ten,
@@ -17,6 +24,11 @@ def serialize_nhankhau(nk: NhanKhau):
         "NoiCap": nk.noi_cap,
         "NgheNghiep": nk.nghe_nghiep,
         "GhiChu": nk.ghi_chu,
+
+        # [NEW] Trả về thông tin quan hệ với Hộ khẩu
+        "HoKhauID": nk.ho_khau_id,
+        "QuanHeVoiChuHo": nk.quan_he_voi_chu_ho,
+        "NgayThemNhanKhau": str(nk.ngay_them_nhan_khau) if nk.ngay_them_nhan_khau else None
     }
 
 
@@ -31,26 +43,35 @@ def get_nhankhau_by_id(id):
 
 
 def create_nhankhau(data):
-    # Logic: Lấy từng trường cụ thể để tránh lỗi key lạ từ request
     try:
+        # [NEW] Xử lý convert ngày tháng từ String JSON -> Python Date
+        ngay_sinh = parse_date(data.get("NgaySinh"))
+        ngay_cap = parse_date(data.get("NgayCap"))
+        ngay_them = parse_date(data.get("NgayThemNhanKhau")) or datetime.now().date()
+
         nk = NhanKhau(
-            ho_ten=data.get("HoTen"),  # Mapping key từ JSON -> Model
-            ngay_sinh=data.get("NgaySinh"),
+            ho_ten=data.get("HoTen"),
+            ngay_sinh=ngay_sinh,
             gioi_tinh=data.get("GioiTinh"),
             dan_toc=data.get("DanToc"),
             ton_giao=data.get("TonGiao"),
             cccd=data.get("cccd"),
-            ngay_cap=data.get("NgayCap"),
+            ngay_cap=ngay_cap,
             noi_cap=data.get("NoiCap"),
             nghe_nghiep=data.get("NgheNghiep"),
-            ghi_chu=data.get("GhiChu")
+            ghi_chu=data.get("GhiChu"),
+
+            # [NEW] Mapping quan hệ 1-N ngay khi tạo
+            ho_khau_id=data.get("HoKhauID"),
+            quan_he_voi_chu_ho=data.get("QuanHeVoiChuHo"),
+            ngay_them_nhan_khau=ngay_them
         )
         db.session.add(nk)
         db.session.commit()
         return serialize_nhankhau(nk)
     except IntegrityError:
         db.session.rollback()
-        return None  # Trả về None để báo hiệu trùng lặp (ví dụ trùng CCCD)
+        return None
 
 
 def update_nhankhau(id, data):
@@ -58,26 +79,42 @@ def update_nhankhau(id, data):
     if not nk:
         return None
 
-    # Logic: Chỉ cho phép update các trường an toàn (Whitelist)
-    allowed_fields = {
-        "HoTen": "ho_ten", "NgaySinh": "ngay_sinh", "GioiTinh": "gioi_tinh",
-        "DanToc": "dan_toc", "TonGiao": "ton_giao", "cccd": "cccd",
-        "NgayCap": "ngay_cap", "NoiCap": "noi_cap", "NgheNghiep": "nghe_nghiep",
-        "GhiChu": "ghi_chu"
+    # Danh sách trường cho phép update (Mapping JSON key -> Model attr)
+    field_map = {
+        "HoTen": "ho_ten",
+        "GioiTinh": "gioi_tinh",
+        "DanToc": "dan_toc",
+        "TonGiao": "ton_giao",
+        "cccd": "cccd",
+        "NoiCap": "noi_cap",
+        "NgheNghiep": "nghe_nghiep",
+        "GhiChu": "ghi_chu",
+        "QuanHeVoiChuHo": "quan_he_voi_chu_ho",
+        "HoKhauID": "ho_khau_id"
     }
 
     has_change = False
-    for json_key, model_attr in allowed_fields.items():
+
+    # Update các trường string thông thường
+    for json_key, model_attr in field_map.items():
         if json_key in data:
             setattr(nk, model_attr, data[json_key])
             has_change = True
+
+    # [NEW] Update các trường Date riêng biệt
+    if "NgaySinh" in data:
+        nk.ngay_sinh = parse_date(data["NgaySinh"])
+        has_change = True
+    if "NgayCap" in data:
+        nk.ngay_cap = parse_date(data["NgayCap"])
+        has_change = True
 
     if has_change:
         try:
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            return "conflict"  # Báo lỗi trùng lặp khi update
+            return "conflict"
 
     return serialize_nhankhau(nk)
 
@@ -85,7 +122,9 @@ def update_nhankhau(id, data):
 def delete_nhankhau(id):
     nk = NhanKhau.query.get(id)
     if nk:
+        # [Todo] Logic: Nếu là Chủ hộ thì không cho xóa, bắt phải tách hộ trước?
+        # Tạm thời xóa cứng
         db.session.delete(nk)
         db.session.commit()
-        return True  # Báo xóa thành công
-    return False  # Báo không tìm thấy
+        return True
+    return False
