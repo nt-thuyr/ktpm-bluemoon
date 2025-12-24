@@ -1,19 +1,37 @@
-import { AppSidebar } from "@/components/app-sidebar"
+"use client"
+import { KeToanSidebar } from "@/components/ketoan-sidebar"
+import { QuanLySidebar } from "@/components/quanly-sidebar"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { useAuth } from "@/lib/hooks/use-auth"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+    children,
+}: {
+    children: React.ReactNode
+}) {
+    const { user, isLoading } = useAuth()
+    const router = useRouter()
+    useEffect(() => {
+        if (!isLoading && !user) {
+            router.push("/auth")
+        }
+    }, [user, isLoading, router])
+    if (isLoading) return null
+    if (!user) return null
     return (
         <SidebarProvider>
             <div className="flex min-h-screen w-full bg-slate-50">
-                <AppSidebar />
+                {user.vai_tro === "ke_toan" && <KeToanSidebar />}
+                {user.vai_tro === "quan_ly" && <QuanLySidebar />}
+
                 <main className="flex-1 w-full">
-                    {/* Header nhỏ bên trên nội dung */}
                     <header className="flex h-14 items-center border-b bg-white px-4 shadow-sm">
                         <SidebarTrigger />
                         <span className="ml-4 font-semibold text-slate-700">Hệ thống quản trị</span>
                     </header>
 
-                    {/* Nội dung chính của từng trang sẽ hiện ở đây */}
                     <div className="p-6">
                         {children}
                     </div>

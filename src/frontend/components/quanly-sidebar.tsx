@@ -17,18 +17,17 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Banknote, Home } from "lucide-react";
+import { Home } from "lucide-react";
 
 // Menu items
 const items = [
     { title: "Dashboard", url: "/", icon: Home },
     { title: "Hộ gia đình", url: "/households", icon: Users },
     { title: "Cư dân", url: "/residents", icon: Users },
-    { title: "Thu phí", url: "/fees", icon: Banknote },
     { title: "Tài khoản", url: "/profile", icon: Settings },
 ]
 
-export function AppSidebar() {
+export function QuanLySidebar() {
     return (
         <Sidebar
             className="bg-primary-gradient text-white border-none w-64 min-h-screen"
