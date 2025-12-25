@@ -39,16 +39,18 @@ export default function LoginForm({ className, ...props }: React.ComponentPropsW
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form>
+                    <form onSubmit={handleSubmit}>
                         <div className="grid gap-6">
-                            {/* email */}
+                            {/* username */}
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email/Username</Label>
+                                <Label htmlFor="username">Email/Username</Label>
                                 <Input
-                                    id="email"
-                                    type="email"
+                                    id="username"
+                                    type="text"
                                     placeholder="admin@group4.com"
                                     required
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
                                 />
                             </div>
                             {/* password */}
@@ -64,11 +66,13 @@ export default function LoginForm({ className, ...props }: React.ComponentPropsW
                                 <Input
                                     id="password"
                                     type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                     required
                                 />
                             </div>
                             {/* Nut dang nhap */}
-                            <Button type="submit" onClick={handleSubmit}
+                            <Button type="submit"
                                 className="w-full text-base font-medium px-4 py-2 rounded-lg shadow hover:opacity-90 transition">
                                 Đăng nhập hệ thống
                             </Button>

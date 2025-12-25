@@ -41,6 +41,7 @@ const formSchema = z.object({
     ngheNghiep: z.string().optional(),
     householdId: z.string().min(1, "Phải nhập mã hộ khẩu"),
     quanHe: z.string().min(1, "Chọn quan hệ"),
+
 })
 
 interface EditResidentDialogProps {
@@ -56,7 +57,7 @@ export function EditResidentDialog({ open, onOpenChange, resident, onSave }: Edi
         defaultValues: {
             hoTen: "",
             cccd: "",
-            gioiTinh: "Nam",
+            gioiTinh: resident?.gioiTinh || "",
             householdId: "",
             ngheNghiep: "",
             ngaySinh: ""
@@ -81,22 +82,17 @@ export function EditResidentDialog({ open, onOpenChange, resident, onSave }: Edi
     }, [resident, form]);
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        // console.log("Update Resident ID:", resident?.id, values)
-        // // Gọi API update ở đây
         if (!resident) return;
-
         // cập nhật dữ liệu mới nếu có thay đổi
         const newData: Resident = {
             ...resident,
             ...values,
-            gioiTinh: values.gioiTinh as "Nam" | "Nữ" | "Khác",
+            ngaySinh: values.ngaySinh ? new Date(values.ngaySinh) : null,
+            gioiTinh: values.gioiTinh as "Nam" | "Nữ",
             quanHeVoiChuHo: values.quanHe, // Map lại tên trường nếu khác nhau
         };
-
         onSave(newData);
-        alert("Đã cập nhật thông tin: " + values.hoTen)
-
-        onOpenChange(false);
+        onOpenChange(false); // Đóng dialog sau khi lưu
     }
 
     return (
@@ -143,7 +139,6 @@ export function EditResidentDialog({ open, onOpenChange, resident, onSave }: Edi
                                             <SelectContent>
                                                 <SelectItem value="Nam">Nam</SelectItem>
                                                 <SelectItem value="Nu">Nữ</SelectItem>
-                                                <SelectItem value="Khac">Khác</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -198,7 +193,7 @@ export function EditResidentDialog({ open, onOpenChange, resident, onSave }: Edi
                         </div>
 
                         <DialogFooter>
-                            <Button className="text-white" variant="outline" type="button" onClick={() => onOpenChange(false)}>Hủy bỏ</Button>
+                            <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Hủy bỏ</Button>
                             <Button type="submit" className="shadow-md">
                                 <Save className="mr-2 h-4 w-4" /> Lưu thay đổi
                             </Button>
