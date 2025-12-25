@@ -15,7 +15,7 @@ export default function DashboardPage() {
       {/* LOGIC HIỂN THỊ */}
 
       {/* 1. View cho Quản Lý */}
-      {user.vai_tro === "quan_ly" && <ManagerDashboard />}
+      {user.vai_tro === "to_truong" && <ManagerDashboard />}
 
       {/* 2. View cho Kế Toán */}
       {user.vai_tro === "ke_toan" && <AccountantDashboard />}

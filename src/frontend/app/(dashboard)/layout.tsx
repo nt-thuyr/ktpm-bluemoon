@@ -24,7 +24,7 @@ export default function DashboardLayout({
         <SidebarProvider>
             <div className="flex min-h-screen w-full bg-slate-50">
                 {user.vai_tro === "ke_toan" && <KeToanSidebar />}
-                {user.vai_tro === "quan_ly" && <QuanLySidebar />}
+                {user.vai_tro === "to_truong" && <QuanLySidebar />}
 
                 <main className="flex-1 w-full">
                     <header className="flex h-14 items-center border-b bg-white px-4 shadow-sm">
