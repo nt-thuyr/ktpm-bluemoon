@@ -54,12 +54,14 @@ const formatDate = (date: string | Date | null | undefined) => {
   const d = new Date(date);
   return d.toLocaleDateString('vi-VN'); // Trả về dd/mm/yyyy
 }
+interface ResidentsTableProps {
+  residents: Resident[];
+  isLoading: boolean;
+}
 
-export function ResidentsTable() {
+export function ResidentsTable({ residents, isLoading }: ResidentsTableProps) {
   // Lấy dữ liệu và hàm từ Hook
   const {
-    residents,
-    isLoading,
     updateResident,
     deleteResident
   } = useResidents();
@@ -93,9 +95,7 @@ export function ResidentsTable() {
   // Xử lý xóa gọi API
   const handleConfirmDelete = async () => {
     if (deletingResident && deletingResident.id) {
-      // Gọi API xóa
       await deleteResident.mutateAsync(deletingResident.id);
-      // Thành công thì đóng modal
       setIsDeleteOpen(false);
       setDeletingResident(null);
     }
@@ -207,10 +207,6 @@ export function ResidentsTable() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[160px]">
                         <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                        {/* <DropdownMenuItem className="cursor-pointer">
-                          <Eye className="mr-2 h-4 w-4 text-slate-500" />
-                          Xem hồ sơ
-                        </DropdownMenuItem> */}
                         <DropdownMenuItem className="cursor-pointer"
                           onClick={() => handleEditClick(item)}>
                           <Pencil className="mr-2 h-4 w-4 text-blue-600" /> Chỉnh sửa

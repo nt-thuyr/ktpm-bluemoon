@@ -1,99 +1,97 @@
-"use client"
+"use client";
 
+import { HouseholdMembersTable } from "@/components/households/HouseholdDetailCard";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-    IconArrowLeft,
-    IconCalendar,
-    IconHome,
-    IconUsers,
-} from "@tabler/icons-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { householdApi } from "@/lib/services/households"; // Import service
+import { Household } from "@/lib/types/models/household";
+import { ArrowLeft, Split, UserPlus } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export default function HouseholdsDetailPage() {
+export default function HouseholdDetailPage() {
+    const params = useParams();
+    const router = useRouter();
+    const id = Number(params.id);
 
+    const [household, setHousehold] = useState<Household | null>(null);
+    const [loading, setLoading] = useState(true);
 
+    useEffect(() => {
+        if (!id) return;
+        const loadData = async () => {
+            try {
+                const data = await householdApi.getHouseholdById(id);
+                setHousehold(data);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+    }, [id]);
+
+    if (loading) return <div>Đang tải thông tin hộ khẩu...</div>;
+    if (!household) return <div>Không tìm thấy hộ khẩu này.</div>;
 
     return (
-        <div className="flex flex-col gap-6 py-6 px-12">
-            <div className="flex items-center gap-4">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => router.back()}
-                    className="flex items-center gap-2 text-foreground"
-                >
-                    <IconArrowLeft className="h-4 w-4" />
-                    Back to Apartments
+        <div className="space-y-6">
+            {/* 1. Header & Nút Back */}
+            <div className="flex items-center justify-between">
+                <Button variant="ghost" onClick={() => router.back()} className="gap-2">
+                    <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
                 </Button>
+                <div className="space-x-2">
+                    {/* Các nút chức năng nâng cao */}
+                    <Button variant="outline" className="gap-2">
+                        <Split className="h-4 w-4" /> Tách hộ
+                    </Button>
+                    <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
+                        <UserPlus className="h-4 w-4" /> Thêm thành viên
+                    </Button>
+                </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-                <Card className="@container/card">
-                    <CardHeader>
-                        <CardDescription>Apartment Name</CardDescription>
-                        <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                            {apartment.name}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <IconHome className="size-5" />
-                            <span>ID: {apartment.id}</span>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="@container/card">
-                    <CardHeader>
-                        <CardDescription>Area</CardDescription>
-                        <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                            {apartment.area} m²
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <span>Usable area</span>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="@container/card">
-                    <CardHeader>
-                        <CardDescription>Residents</CardDescription>
-                        <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                            {apartment.residentCount}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <IconUsers className="size-5" />
-                            <span>Current residents</span>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="@container/card">
-                    <CardHeader>
-                        <CardDescription>Created Date</CardDescription>
-                        <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                            {format(new Date(apartment.date_created), "dd/MM/yyyy")}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <IconCalendar className="size-5" />
-                            <span>Date added to system</span>
-                        </div>
-                    </CardContent>
-                </Card>
+
+            {/* 2. Card Thông tin chung */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-xl text-blue-800">Thông tin Hộ khẩu: {household.id}</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-6">
+                    <div>
+                        <p className="text-sm font-medium text-slate-500">Chủ hộ</p>
+                        <p className="text-lg font-bold text-slate-800">{household.tenChuHo}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-slate-500">Địa chỉ</p>
+                        <p className="text-base text-slate-800">{household.diaChi}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-slate-500">Diện tích</p>
+                        <p className="text-base text-slate-800">{household.dienTich} m2</p>
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-slate-500">Ngày lập</p>
+                        <p className="text-base text-slate-800">
+                            {household.ngayLap ? new Date(household.ngayLap).toLocaleDateString('vi-VN') : '--'}
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Separator />
+
+            {/* 3. Danh sách thành viên (Reuse UI Table nhưng custom cột) */}
+            <div>
+                <h3 className="mb-4 text-lg font-semibold text-slate-800">
+                    Danh sách thành viên ({household.thanhVien.length})
+                </h3>
+
+                {/* Truyền thẳng mảng thành viên vào đây */}
+                <HouseholdMembersTable members={household.thanhVien} />
             </div>
-            <h2 className="text-xl font-semibold mt-4 mb-2 flex items-center gap-2">
-                <IconUsers className="h-5 w-5 text-primary" />
-                Residents in this Apartment
-            </h2>
-            <ResidentsTable
-                residents={residents}
-                onCreate={handleCreateResident}
-                onEdit={handleEditResident}
-                onDelete={handleDeleteResident}
-                apartmentId={apartment?.id}
-            />
         </div>
     );
 }

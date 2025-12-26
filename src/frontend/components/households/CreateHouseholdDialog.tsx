@@ -19,108 +19,139 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useHouseholds } from "@/lib/hooks/use-households";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Save } from "lucide-react";
+import { Loader2, Plus, Save } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-// Schema validation
 const formSchema = z.object({
-    soHoKhau: z.string().min(1, "Số hộ khẩu là bắt buộc"),
-    tenChuHo: z.string().min(2, "Tên chủ hộ phải > 2 ký tự"),
+    chuHoId: z.coerce.number().min(1, "Vui lòng nhập ID nhân khẩu làm chủ hộ"),
+
     soNha: z.string().min(1, "Nhập số nhà"),
     duong: z.string().min(1, "Nhập tên đường"),
     phuong: z.string().min(1, "Nhập phường/xã"),
     quan: z.string().min(1, "Nhập quận/huyện"),
+    dienTich: z.coerce.number().min(0, "Diện tích không hợp lệ"),
+
     ngayLap: z.string(),
 });
 
 export function CreateHouseholdDialog() {
+    const [open, setOpen] = useState(false);
+    const { addHousehold } = useHouseholds();
     const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(formSchema) as any,
         defaultValues: {
-            soHoKhau: "",
-            tenChuHo: "",
+            chuHoId: 0,
             soNha: "",
             duong: "",
             phuong: "",
             quan: "",
-            ngayLap: new Date().toISOString().split('T')[0], // Mặc định hôm nay
+            dienTich: 0,
+            ngayLap: new Date().toISOString().split('T')[0],
         },
     });
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        // Gọi API tạo mới 
-        console.log(values);
-        alert("Đã thêm hộ khẩu: " + values.soHoKhau);
+    // Hàm xử lý Submit
+    async function onSubmit(values: z.infer<typeof formSchema>) {
+        // Map dữ liệu từ Form sang API Payload
+        const success = await addHousehold({
+            ChuHoID: values.chuHoId,
+            SoNha: values.soNha,
+            Duong: values.duong,
+            Phuong: values.phuong,
+            Quan: values.quan,
+            DienTich: values.dienTich,
+            NgayLamHoKhau: values.ngayLap // Format YYYY-MM-DD
+        });
+
+        // Nếu thành công thì đóng modal và reset form
+        if (success) {
+            setOpen(false);
+            form.reset();
+        }
     }
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="shadow-md">
+                <Button className="shadow-md bg-blue-600 hover:bg-blue-700">
                     <Plus className="mr-2 h-4 w-4" /> Thêm hộ khẩu
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-2xl  bg-white text-slate-900 max-h-[calc(100vh-4rem)] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-bold text-white">Thêm hộ khẩu mới</DialogTitle>
-                    <DialogDescription className="text-white/90">
-                        Nhập thông tin cơ bản của hộ. Sau khi tạo, bạn có thể thêm thành viên vào hộ này.
+                    <DialogTitle className="text-xl font-bold text-blue-800">Thêm hộ khẩu mới</DialogTitle>
+                    <DialogDescription>
+                        Nhập ID nhân khẩu để làm chủ hộ. Hệ thống sẽ tự tạo số hộ khẩu mới.
                     </DialogDescription>
                 </DialogHeader>
 
                 <Form {...form} >
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <div className="space-y-2 border p-3 rounded-md bg-slate-50">
-                            <FormField control={form.control} name="soHoKhau" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Số Hộ Khẩu (ID)</FormLabel>
-                                    <FormControl><Input placeholder="VD: HK005" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* Nhập ID Chủ Hộ */}
+                                <FormField control={form.control} name="chuHoId" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>ID Chủ Hộ (Nhân khẩu)</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="VD: 10" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
 
-                            <FormField control={form.control} name="ngayLap" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Ngày lập sổ</FormLabel>
-                                    <FormControl><Input type="date" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
-                            <FormField control={form.control} name="tenChuHo" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Họ tên Chủ Hộ (Dự kiến)</FormLabel>
-                                    <FormControl><Input placeholder="Nhập tên chủ hộ..." {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
+                                {/* Ngày lập */}
+                                <FormField control={form.control} name="ngayLap" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Ngày lập sổ</FormLabel>
+                                        <FormControl><Input type="date" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                            </div>
                         </div>
 
                         <div className="space-y-2 border p-3 rounded-md bg-slate-50">
-                            <h4 className="text-sm font-medium text-muted-foreground">Địa chỉ thường trú</h4>
+                            <h4 className="text-sm font-medium text-muted-foreground mb-2">Thông tin nơi ở</h4>
                             <div className="grid grid-cols-2 gap-4">
                                 <FormField control={form.control} name="soNha" render={({ field }) => (
                                     <FormItem>
-                                        <FormControl><Input placeholder="Số nhà" className="bg-white shadow-sm" {...field} /></FormControl>
+                                        <FormLabel>Số nhà</FormLabel>
+                                        <FormControl><Input placeholder="Số 10" className="bg-white" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
                                 <FormField control={form.control} name="duong" render={({ field }) => (
                                     <FormItem>
-                                        <FormControl><Input placeholder="Đường/Phố" {...field} /></FormControl>
+                                        <FormLabel>Đường/Phố</FormLabel>
+                                        <FormControl><Input placeholder="Giải Phóng" className="bg-white" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
                                 <FormField control={form.control} name="phuong" render={({ field }) => (
                                     <FormItem>
-                                        <FormControl><Input placeholder="Phường/Xã" {...field} /></FormControl>
+                                        <FormLabel>Phường/Xã</FormLabel>
+                                        <FormControl><Input placeholder="Đồng Tâm" className="bg-white" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
                                 <FormField control={form.control} name="quan" render={({ field }) => (
                                     <FormItem>
-                                        <FormControl><Input placeholder="Quận/Huyện" {...field} /></FormControl>
+                                        <FormLabel>Quận/Huyện</FormLabel>
+                                        <FormControl><Input placeholder="Hai Bà Trưng" className="bg-white" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+
+                                {/* Thêm Diện tích */}
+                                <FormField control={form.control} name="dienTich" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Diện tích (m2)</FormLabel>
+                                        <FormControl><Input type="number" className="bg-white" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
@@ -128,8 +159,14 @@ export function CreateHouseholdDialog() {
                         </div>
 
                         <DialogFooter>
-                            <Button type="submit" className="bg-primary-gradient w-full md:w-auto">
-                                <Save className="mr-2 h-4 w-4" /> Lưu hộ khẩu
+                            <Button variant="outline" type="button" onClick={() => setOpen(false)}>Hủy</Button>
+
+                            <Button type="submit" disabled={form.formState.isSubmitting} className="bg-blue-950 hover:bg-blue-700">
+                                {form.formState.isSubmitting ? (
+                                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang xử lý</>
+                                ) : (
+                                    <><Save className="mr-2 h-4 w-4" /> Tạo hộ khẩu</>
+                                )}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -137,4 +174,4 @@ export function CreateHouseholdDialog() {
             </DialogContent>
         </Dialog>
     );
-}
+};

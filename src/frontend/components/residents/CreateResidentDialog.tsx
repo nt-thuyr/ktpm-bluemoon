@@ -28,10 +28,11 @@ import {
 } from "@/components/ui/select"
 import { Resident } from "@/lib/types/models/resident"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Plus, Save, User } from "lucide-react"
+import { Loader2, Plus, Save, User } from "lucide-react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-// 1. Định nghĩa Schema Validation
+
 const formSchema = z.object({
     hoTen: z.string().min(2, "Tên phải lớn hơn 2 ký tự"),
     ngaySinh: z.string().min(1, "Vui lòng chọn ngày sinh"),
@@ -40,16 +41,19 @@ const formSchema = z.object({
     sdt: z.string().optional(),
     ngheNghiep: z.string().optional(),
     danToc: z.string().optional(),
-    // Phần liên kết hộ khẩu
-    householdId: z.string().min(1, "Phải nhập mã hộ khẩu"),
+
+    householdId: z.string().optional(),
     quanHe: z.string().min(1, "Chọn quan hệ"),
     trangThai: z.string().min(1, "Chọn trạng thái cư trú"),
 })
+
 interface CreateResidentDialogProps {
-    onCreate: (resident: Resident) => void
+    onCreate: (data: Resident) => Promise<void>;
 }
 
 export function CreateResidentDialog({ onCreate }: CreateResidentDialogProps) {
+    // State quản lý đóng mở Dialog
+    const [open, setOpen] = useState(false);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -66,31 +70,38 @@ export function CreateResidentDialog({ onCreate }: CreateResidentDialogProps) {
         },
     })
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    // Xử lý Submit
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         const newResident: Resident = {
-            id: crypto.randomUUID(), // mock ID
+            id: "0", // ID backend tự sinh (hoặc để undefined nếu type cho phép)
             hoTen: values.hoTen,
-            ngaySinh: new Date(values.ngaySinh), // string YYYY-MM-DD ✔
+            // Chuyển string YYYY-MM-DD -> Date object
+            ngaySinh: values.ngaySinh ? new Date(values.ngaySinh) : new Date(),
             gioiTinh: values.gioiTinh as "Nam" | "Nu" | "Khac",
             cccd: values.cccd,
             ngheNghiep: values.ngheNghiep ?? "",
-            householdId: values.householdId,
+            householdId: values.householdId?.toString() || null,
             quanHeVoiChuHo: values.quanHe,
-            danToc: values.danToc ?? "",
-            tonGiao: "",
+            danToc: values.danToc ?? "Kinh",
+            tonGiao: "Không",
             ngayCap: null,
             noiCap: "",
             ghiChu: "",
             ngayThemNhanKhau: new Date(),
-            // ⚠️ trạng thái sau này lấy từ absence-registration
+            // Trạng thái cư trú có thể cần mapping lại tùy backend
+            // Ví dụ backend cần enum: 'TamTru' | 'ThuongTru'
         }
-        onCreate(newResident)
-        console.log("Submit Resident:", values)
-        alert("Đã thêm cư dân: " + values.hoTen)
-    }
 
+        try {
+            await onCreate(newResident);
+            setOpen(false);
+            form.reset();
+        } catch (error) {
+            console.error(error);
+        }
+    }
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button className="shadow-md">
                     <Plus className="mr-2 h-4 w-4" /> Thêm cư dân mới
@@ -165,10 +176,10 @@ export function CreateResidentDialog({ onCreate }: CreateResidentDialogProps) {
                                         <FormControl><Input placeholder="Nhân viên văn phòng..." {...field} /></FormControl>
                                     </FormItem>
                                 )} />
-                                <FormField control={form.control} name="sdt" render={({ field }) => (
+                                <FormField control={form.control} name="danToc" render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Số điện thoại (Tùy chọn)</FormLabel>
-                                        <FormControl><Input placeholder="09xxxx" {...field} /></FormControl>
+                                        <FormLabel>Dân tộc</FormLabel>
+                                        <FormControl><Input placeholder="Kinh" {...field} /></FormControl>
                                     </FormItem>
                                 )} />
                             </div>
@@ -238,8 +249,16 @@ export function CreateResidentDialog({ onCreate }: CreateResidentDialogProps) {
                         </div>
 
                         <DialogFooter>
-                            <Button type="submit" className="w-full sm:w-auto">
+                            {/* <Button type="submit" className="w-full sm:w-auto">
                                 <Save className="mr-2 h-4 w-4" /> Lưu thông tin
+                            </Button> */}
+                            <Button variant="outline" type="button" onClick={() => setOpen(false)}>Hủy</Button>
+                            <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
+                                {form.formState.isSubmitting ? (
+                                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang lưu...</>
+                                ) : (
+                                    <><Save className="mr-2 h-4 w-4" /> Lưu thông tin</>
+                                )}
                             </Button>
                         </DialogFooter>
                     </form>

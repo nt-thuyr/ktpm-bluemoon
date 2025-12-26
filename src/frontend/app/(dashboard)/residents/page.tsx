@@ -1,22 +1,18 @@
 "use client"
 import { CreateResidentDialog } from "@/components/residents/CreateResidentDialog"
 import { ResidentsTable } from "@/components/residents/ResidentsTable"
-import { residentsMock } from "@/lib/mocks/residents.mock"
-import { Resident } from "@/lib/types/models/resident"
+import { useResidents } from "@/lib/hooks/use-residents"
 import { Users } from "lucide-react"
-import { useState } from "react"
 // Trang nay gom:
 // Header: Tiêu đề + Breadcrumb 
 // Toolbar: Search input, Filter select, Button "Thêm mới".
 // Table: Hiển thị dữ liệu.
 
 
-export default function ResidentsPage() {
-    const [residents, setResidents] = useState<Resident[]>(residentsMock)
 
-    const handleCreateResident = (newResident: Resident) => {
-        setResidents(prev => [...prev, newResident])
-    }
+export default function ResidentsPage() {
+    const { residents, createResident, isLoading } = useResidents();
+
     return (
         <div className="space-y-8">
             {/* HEADER SECTION */}
@@ -35,7 +31,7 @@ export default function ResidentsPage() {
                 {/* <Button className="shadow-md font-medium">
                     <Plus className="mr-2 h-4 w-4" /> Thêm cư dân mới
                 </Button> */}
-                <CreateResidentDialog onCreate={handleCreateResident} />
+                <CreateResidentDialog onCreate={createResident.mutateAsync} />
 
             </div>
 
@@ -46,7 +42,7 @@ export default function ResidentsPage() {
                         <Users className="h-10 w-10 text-muted-foreground/40" />
                     </div>
 
-                    <ResidentsTable />
+                    <ResidentsTable residents={residents} isLoading={isLoading} />
                 </div>
             </div>
         </div>
