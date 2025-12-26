@@ -70,7 +70,7 @@ export function CreateResidentDialog({ onCreate }: CreateResidentDialogProps) {
         const newResident: Resident = {
             id: crypto.randomUUID(), // mock ID
             hoTen: values.hoTen,
-            ngaySinh: values.ngaySinh, // string YYYY-MM-DD ✔
+            ngaySinh: new Date(values.ngaySinh), // string YYYY-MM-DD ✔
             gioiTinh: values.gioiTinh as "Nam" | "Nu" | "Khac",
             cccd: values.cccd,
             ngheNghiep: values.ngheNghiep ?? "",
@@ -81,7 +81,7 @@ export function CreateResidentDialog({ onCreate }: CreateResidentDialogProps) {
             ngayCap: null,
             noiCap: "",
             ghiChu: "",
-            ngayThemNhanKhau: new Date().toISOString(),
+            ngayThemNhanKhau: new Date(),
             // ⚠️ trạng thái sau này lấy từ absence-registration
         }
         onCreate(newResident)

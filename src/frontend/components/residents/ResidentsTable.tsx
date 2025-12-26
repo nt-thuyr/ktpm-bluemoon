@@ -21,7 +21,7 @@ import {
 import { useResidents } from "@/lib/hooks/use-residents"
 import { absenceRegistrationsMock } from "@/lib/mocks/absence.mock"
 import { Resident } from "@/lib/types/models/resident"
-import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { DeleteResidentDialog } from "./DeleteResidentDialog"
@@ -143,13 +143,6 @@ export function ResidentsTable() {
                     </div>
                   </TableCell>
 
-                  {/* Cột Thông tin cá nhân (Ngày sinh + Giới tính) */}
-                  {/* <TableCell className="w-[40] py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-700">{formatDate(item.ngaySinh)}</span>
-                      <span className="text-xs text-muted-foreground">{item.gioiTinh} • {item.danToc}</span>
-                    </div>
-                  </TableCell> */}
                   <TableCell className="text-left w-[140px] py-3 pl-2"> {/* Căn giữa ô */}
                     <div className="flex flex-col items-start justify-center"> {/* Xếp dọc + Căn giữa */}
                       <span className="font-medium text-slate-700">
@@ -214,10 +207,10 @@ export function ResidentsTable() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[160px]">
                         <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                        <DropdownMenuItem className="cursor-pointer">
+                        {/* <DropdownMenuItem className="cursor-pointer">
                           <Eye className="mr-2 h-4 w-4 text-slate-500" />
                           Xem hồ sơ
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                         <DropdownMenuItem className="cursor-pointer"
                           onClick={() => handleEditClick(item)}>
                           <Pencil className="mr-2 h-4 w-4 text-blue-600" /> Chỉnh sửa
