@@ -3,22 +3,65 @@ from ..models.tam_tru_tam_vang import TamTruTamVang
 from ..models.nhan_khau import NhanKhau
 from datetime import datetime
 
+
+def serialize_tamtru(tt, ten_nhan_khau=None, cccd=None):
+    return {
+        "id": tt.id,
+        "NhanKhauID": tt.nhan_khau_id,
+        "HoTen": ten_nhan_khau,  # Field join từ bảng NhanKhau
+        "CCCD": cccd,
+        "DiaChi": tt.dia_chi,
+        "NoiDungDeNghi": tt.noi_dung_de_nghi,
+        "TrangThai": tt.trang_thai,  # "Tạm trú" hoặc "Tạm vắng"
+        "ThoiGian": str(tt.thoi_gian) if tt.thoi_gian else None
+    }
+
+
+def get_all_tamtru_global(keyword=None):
+    """
+    Lấy danh sách có hỗ trợ tìm kiếm theo Tên hoặc CCCD
+    """
+    query = db.session.query(TamTruTamVang, NhanKhau).join(
+        NhanKhau, TamTruTamVang.nhan_khau_id == NhanKhau.id
+    )
+
+    if keyword:
+        search = f"%{keyword}%"
+        # Tìm theo Tên người, CCCD hoặc loại Trạng thái
+        query = query.filter(
+            (NhanKhau.ho_ten.ilike(search)) |
+            (NhanKhau.cccd.ilike(search)) |
+            (TamTruTamVang.trang_thai.ilike(search))
+        )
+
+    results = query.all()
+    # results là list các tuple [(TamTruTamVang, NhanKhau), ...]
+    return [serialize_tamtru(tt, nk.ho_ten, nk.cccd) for tt, nk in results]
+
+
 def create_tamtru(data):
-    # 1. Validate nhân khẩu tồn tại
-    nk = NhanKhau.query.get(data.get("nhan_khau_id"))
+    # 1. Validate nhân khẩu
+    nk_id = data.get("nhan_khau_id")
+    nk = NhanKhau.query.get(nk_id)
     if not nk: return "nhan_khau_not_found"
 
-    # 2. Parse ngày tháng
+    # 2. Logic nghiệp vụ (Optional - tùy bạn có muốn chặt chẽ không)
+    loai_hinh = data.get("trang_thai")  # "Tạm trú" / "Tạm vắng"
+
+    # Nếu là Tạm vắng -> Người này phải đang thuộc một hộ khẩu nào đó trong chung cư
+    if loai_hinh == "Tạm vắng" and not nk.ho_khau_id:
+        return "tam_vang_requires_hokhau"
+
+    # 3. Parse ngày
     try:
         ngay_dang_ky = datetime.strptime(data.get("thoi_gian"), '%Y-%m-%d').date()
     except:
         return "invalid_date"
 
-    # 3. Lưu vào DB
     tt = TamTruTamVang(
-        nhan_khau_id=data.get("nhan_khau_id"),
-        trang_thai=data.get("trang_thai"),
-        dia_chi=data.get("dia_chi"),
+        nhan_khau_id=nk_id,
+        trang_thai=loai_hinh,
+        dia_chi=data.get("dia_chi"),  # Nơi chuyển đến (nếu tạm vắng) hoặc Nơi ở hiện tại (nếu tạm trú)
         thoi_gian=ngay_dang_ky,
         noi_dung_de_nghi=data.get("noi_dung_de_nghi")
     )
@@ -26,12 +69,15 @@ def create_tamtru(data):
     try:
         db.session.add(tt)
         db.session.commit()
-        return {
-            "id": tt.id,
-            "HoTen": nk.ho_ten,
-            "TrangThai": tt.trang_thai,
-            "NgayDangKy": str(tt.thoi_gian)
-        }
-    except Exception as e:
+        return serialize_tamtru(tt, nk.ho_ten, nk.cccd)
+    except Exception:
         db.session.rollback()
         return None
+
+
+def delete_tamtru(id):
+    tt = TamTruTamVang.query.get(id)
+    if not tt: return False
+    db.session.delete(tt)
+    db.session.commit()
+    return True
