@@ -19,7 +19,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useHouseholds } from "@/lib/hooks/use-households";
+import { APARTMENT_INFO } from "@/lib/types/models/household";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Plus, Save } from "lucide-react";
 import { useState } from "react";
@@ -38,36 +38,38 @@ const formSchema = z.object({
     ngayLap: z.string(),
 });
 
-export function CreateHouseholdDialog() {
+interface CreateHouseholdDialogProps {
+    onAddSuccess: (data: any) => Promise<boolean>;
+}
+export function CreateHouseholdDialog({ onAddSuccess }: CreateHouseholdDialogProps) {
     const [open, setOpen] = useState(false);
-    const { addHousehold } = useHouseholds();
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema) as any,
         defaultValues: {
             chuHoId: 0,
             soNha: "",
-            duong: "",
-            phuong: "",
-            quan: "",
             dienTich: 0,
             ngayLap: new Date().toISOString().split('T')[0],
+
+            duong: APARTMENT_INFO.DUONG,
+            phuong: APARTMENT_INFO.PHUONG,
+            quan: APARTMENT_INFO.QUAN,
         },
     });
 
     // Hàm xử lý Submit
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        // Map dữ liệu từ Form sang API Payload
-        const success = await addHousehold({
+        const success = await onAddSuccess({
             ChuHoID: values.chuHoId,
             SoNha: values.soNha,
             Duong: values.duong,
             Phuong: values.phuong,
             Quan: values.quan,
             DienTich: values.dienTich,
-            NgayLamHoKhau: values.ngayLap // Format YYYY-MM-DD
+            NgayLamHoKhau: values.ngayLap
         });
 
-        // Nếu thành công thì đóng modal và reset form
         if (success) {
             setOpen(false);
             form.reset();
@@ -120,29 +122,36 @@ export function CreateHouseholdDialog() {
                             <div className="grid grid-cols-2 gap-4">
                                 <FormField control={form.control} name="soNha" render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Số nhà</FormLabel>
-                                        <FormControl><Input placeholder="Số 10" className="bg-white" {...field} /></FormControl>
+                                        <FormLabel>Số Phòng / Căn Hộ</FormLabel>
+                                        <FormControl><Input placeholder="VD: P102, 1205..." className="bg-white" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
+                                {/* Read only field */}
                                 <FormField control={form.control} name="duong" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Đường/Phố</FormLabel>
-                                        <FormControl><Input placeholder="Giải Phóng" className="bg-white" {...field} /></FormControl>
+                                        <FormControl>
+                                            <Input {...field} disabled className="bg-slate-200 text-slate-600 cursor-not-allowed" />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
                                 <FormField control={form.control} name="phuong" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Phường/Xã</FormLabel>
-                                        <FormControl><Input placeholder="Đồng Tâm" className="bg-white" {...field} /></FormControl>
+                                        <FormControl>
+                                            <Input {...field} disabled className="bg-slate-200 text-slate-600 cursor-not-allowed" />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
                                 <FormField control={form.control} name="quan" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Quận/Huyện</FormLabel>
-                                        <FormControl><Input placeholder="Hai Bà Trưng" className="bg-white" {...field} /></FormControl>
+                                        <FormControl>
+                                            <Input {...field} disabled className="bg-slate-200 text-slate-600 cursor-not-allowed" />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />

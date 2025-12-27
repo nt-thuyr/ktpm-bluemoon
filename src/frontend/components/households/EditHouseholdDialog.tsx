@@ -17,7 +17,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Household } from "@/lib/types/models/household";
+import { APARTMENT_INFO, Household } from "@/lib/types/models/household";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -65,9 +65,9 @@ export function EditHouseholdDialog({
         if (household) {
             form.reset({
                 soNha: household.soNha || "",
-                duong: household.duong || "",
-                phuong: household.phuong || "",
-                quan: household.quan || "",
+                duong: APARTMENT_INFO.DUONG,
+                phuong: APARTMENT_INFO.PHUONG,
+                quan: APARTMENT_INFO.QUAN,
                 dienTich: household.dienTich || 0,
                 chuHoId: household.chuHoId || undefined,
             });
@@ -99,10 +99,8 @@ export function EditHouseholdDialog({
                                 name="soNha"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Số nhà</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Số 10" {...field} />
-                                        </FormControl>
+                                        <FormLabel>Số Phòng / Căn Hộ</FormLabel>
+                                        <FormControl><Input placeholder="VD: P102, 1205..." className="bg-white" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -114,7 +112,7 @@ export function EditHouseholdDialog({
                                     <FormItem>
                                         <FormLabel>Đường/Phố</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Tạ Quang Bửu" {...field} />
+                                            <Input {...field} disabled className="bg-slate-200 text-slate-600 cursor-not-allowed" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -130,7 +128,7 @@ export function EditHouseholdDialog({
                                     <FormItem>
                                         <FormLabel>Phường/Xã</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Bách Khoa" {...field} />
+                                            <Input {...field} disabled className="bg-slate-200 text-slate-600 cursor-not-allowed" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -143,7 +141,7 @@ export function EditHouseholdDialog({
                                     <FormItem>
                                         <FormLabel>Quận/Huyện</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Hai Bà Trưng" {...field} />
+                                            <Input {...field} disabled className="bg-slate-200 text-slate-600 cursor-not-allowed" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

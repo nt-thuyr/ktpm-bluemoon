@@ -18,26 +18,23 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { useHouseholds } from "@/lib/hooks/use-households";
 import { Household } from "@/lib/types/models/household";
 import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DeleteHouseholdDialog } from "./DeleteHouseholdDialog";
 import { EditHouseholdDialog } from "./EditHouseholdDialog";
 
 
 interface HouseholdsTableProps {
-    data?: Household[];
+    data: Household[];
+    isLoading: boolean;
+    onDelete: (id: number) => Promise<void>;
+    onUpdate: (id: number, data: Partial<Household>) => Promise<boolean>;
 }
 
-export function HouseholdsTable() {
-    // Lấy logic từ Hook
-    const { households, isLoading, fetchHouseholds, deleteHousehold, updateHousehold } = useHouseholds();
-    // Tải dữ liệu khi component mount
-    useEffect(() => {
-        fetchHouseholds();
-    }, [fetchHouseholds]);
+export function HouseholdsTable({ data, isLoading, onDelete, onUpdate }: HouseholdsTableProps) {
+    console.log("Data in Table:", data);
     // State cho Modal
     const [editingHousehold, setEditingHousehold] = useState<Household | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -51,9 +48,13 @@ export function HouseholdsTable() {
     // lưu Edit gọi API
     const handleEditConfirm = async (updatedData: Household) => {
         if (!updatedData.id) return;
-        await updateHousehold(updatedData.id, updatedData);
-        setIsEditOpen(false);
-        setEditingHousehold(null);
+
+        const success = await onUpdate(updatedData.id, updatedData);
+
+        if (success) {
+            setIsEditOpen(false);
+            setEditingHousehold(null);
+        }
     };
 
     const handleDeleteClick = (household: Household) => {
@@ -63,7 +64,8 @@ export function HouseholdsTable() {
     // Xử lý xóa gọi API
     const handleDeleteConfirm = async () => {
         if (deletingHousehold && deletingHousehold.id) {
-            await deleteHousehold(deletingHousehold.id);
+            await onDelete(deletingHousehold.id);
+
             setIsDeleteOpen(false);
             setDeletingHousehold(null);
         }
@@ -87,7 +89,7 @@ export function HouseholdsTable() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {households.map((item) => (
+                    {data.map((item) => (
                         <TableRow key={item.id} className="hover:bg-slate-50/50">
                             {/* 1. Mã Hộ */}
                             <TableCell className="font-medium text-blue-900">
