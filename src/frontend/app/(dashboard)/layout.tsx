@@ -1,6 +1,6 @@
 "use client"
 import { KeToanSidebar } from "@/components/ketoan-sidebar"
-import { QuanLySidebar } from "@/components/quanly-sidebar"
+import { QuanLySidebar } from "@/components/totruong-sidebar"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { useRouter } from "next/navigation"

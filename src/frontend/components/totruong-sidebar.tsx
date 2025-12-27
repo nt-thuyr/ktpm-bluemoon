@@ -3,6 +3,7 @@
 import {
     LogOut,
     Settings,
+    User,
     Users
 } from "lucide-react";
 
@@ -24,6 +25,7 @@ const items = [
     { title: "Dashboard", url: "/", icon: Home },
     { title: "Hộ gia đình", url: "/households", icon: Users },
     { title: "Cư dân", url: "/residents", icon: Users },
+    { title: "Tạm trú/ tạm vắng", url: "/residents/absences", icon: User },
     { title: "Tài khoản", url: "/profile", icon: Settings },
 ]
 
