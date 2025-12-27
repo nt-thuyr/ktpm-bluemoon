@@ -17,28 +17,62 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { feesMock as mockFees } from "@/lib/mocks/fees.mock"
+import { UpdateFeeRequest } from "@/lib/services/fee"
 import { Fee } from "@/lib/types/models/fee"
 import { Edit, MoreHorizontal, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { EditFeeDialog } from "../fee/edit-fee-dialog"
+import { DeleteFeeDialog } from "./delete-fee-dialog"
 
-export function FeesTable() {
-    const [tableData, setTableData] = useState<Fee[]>(mockFees);
-    // 2. State quản lý Dialog Edit
+interface FeesTableProps {
+    data: Fee[];
+    isLoading: boolean;
+    onDelete: (id: number) => Promise<void>;
+    onUpdate: (id: number, data: UpdateFeeRequest) => Promise<boolean>;
+}
+
+export function FeesTable({ data, isLoading, onDelete, onUpdate }: FeesTableProps) {
+
     const [editingFee, setEditingFee] = useState<Fee | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
 
+    const [deletingFee, setDeletingFee] = useState<Fee | null>(null);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+    // Logic edit
     const handleEditClick = (fee: Fee) => {
         setEditingFee(fee);
         setIsEditOpen(true);
     };
-    const handleSaveChanges = (updatedFee: Fee) => {
-        const newData = tableData.map((item) =>
-            item.id === updatedFee.id ? updatedFee : item
-        );
-        setTableData(newData);
+
+    const handleSaveChanges = async (updatedFee: Fee) => {
+        const success = await onUpdate(updatedFee.id, {
+            TenKhoanThu: updatedFee.tenKhoanThu,
+            SoTien: updatedFee.soTien,
+            BatBuoc: updatedFee.isBatBuoc,
+            GhiChu: updatedFee.ghiChu,
+            HanNop: updatedFee.hanNop ? String(updatedFee.hanNop) : null,
+        });
+
+        if (success) {
+            setIsEditOpen(false);
+        }
     };
+
+    // Logic delete
+    const handleDeleteClick = (fee: Fee) => {
+        setDeletingFee(fee);
+        setIsDeleteOpen(true);
+    }
+
+    const handleConfirmDelete = async (id: number) => {
+        await onDelete(id);
+    }
+
+
+    if (isLoading && data.length === 0) {
+        return <div className="p-8 text-center text-muted-foreground">Đang tải dữ liệu...</div>
+    }
     return (
         <div className="w-full rounded-lg border bg-white shadow-sm overflow-hidden">
             <Table>
@@ -52,7 +86,7 @@ export function FeesTable() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {tableData.map((fee) => (
+                    {data.map((fee) => (
                         <TableRow key={fee.id}>
                             <TableCell className="font-medium">{fee.id}</TableCell>
                             <TableCell>
@@ -62,7 +96,7 @@ export function FeesTable() {
                                 </div>
                             </TableCell>
                             <TableCell>
-                                {fee.loaiPhi === "BatBuoc" ? (
+                                {fee.isBatBuoc ? (
                                     <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200 shadow-none">Bắt buộc</Badge>
                                 ) : (
                                     <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 shadow-none">Tự nguyện</Badge>
@@ -89,7 +123,8 @@ export function FeesTable() {
                                             <Edit className="mr-2 h-4 w-4 text-blue-600"
                                             /> Sửa
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem className="cursor-pointer text-red-600">
+                                        <DropdownMenuItem onClick={() => handleDeleteClick(fee)}
+                                            className="cursor-pointer text-red-600">
                                             <Trash2 className="mr-2 h-4 w-4" /> Xóa
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -104,6 +139,12 @@ export function FeesTable() {
                 onOpenChange={setIsEditOpen}
                 fee={editingFee}
                 onSave={handleSaveChanges}
+            />
+            <DeleteFeeDialog
+                open={isDeleteOpen}
+                onOpenChange={setIsDeleteOpen}
+                fee={deletingFee}
+                onConfirm={handleConfirmDelete}
             />
         </div>
     )

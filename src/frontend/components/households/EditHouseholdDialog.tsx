@@ -76,12 +76,9 @@ export function EditHouseholdDialog({
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         if (!household) return;
-
-        // Merge dữ liệu cũ với dữ liệu mới form
         const updatedHousehold: Household = {
             ...household,
             ...values,
-            // Các trường không có trong form thì giữ nguyên từ data cũ
         };
 
         await onSave(updatedHousehold);

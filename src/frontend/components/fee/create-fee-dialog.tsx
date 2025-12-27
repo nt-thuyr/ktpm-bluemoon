@@ -27,8 +27,10 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { CreateFeeRequest } from "@/lib/services/fee"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Plus, Save, FileText } from "lucide-react"
+import { FileText, Plus, Save } from "lucide-react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 
@@ -36,28 +38,60 @@ import * as z from "zod"
 const formSchema = z.object({
     tenKhoanThu: z.string().min(2, "Tên khoản thu không được để trống"),
     loaiPhi: z.string(),
-    soTien: z.string().optional(), // Nhập string rồi convert sang number sau
+    soTien: z.string().refine((val) => !Number.isNaN(Number(val)), {
+        message: "Số tiền phải là số",
+    }).optional(),
+
     ngayTao: z.string(),
-    thoiHan: z.string().min(1, "Vui lòng chọn hạn nộp"),
+    hanNop: z.string().min(1, "Vui lòng chọn hạn nộp"),
     ghiChu: z.string().optional(),
 })
 
-export function CreateFeeDialog() {
+// 2. Định nghĩa Props
+interface CreateFeeModalProps {
+    onAddSuccess: (data: CreateFeeRequest) => Promise<boolean>;
+}
+
+export function CreateFeeDialog({ onAddSuccess }: CreateFeeModalProps) {
+    const [open, setOpen] = useState(false); // Quản lý đóng mở Modal
+    const [isSubmitting, setIsSubmitting] = useState(false); // Quản lý trạng thái loading button
+    setIsSubmitting(true);
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             tenKhoanThu: "",
             loaiPhi: "BatBuoc",
             ngayTao: new Date().toISOString().split('T')[0],
-            thoiHan: "",
+            hanNop: "",
             soTien: "",
             ghiChu: ""
         },
     })
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log("New Fee:", values)
-        alert("Đã tạo khoản thu: " + values.tenKhoanThu)
+    // Xử lý Submit
+    async function onSubmit(values: z.infer<typeof formSchema>) {
+        setIsSubmitting(true);
+
+        // Convert dữ liệu từ Form (String) -> API Payload (Number/Boolean)
+        const payload: CreateFeeRequest = {
+            TenKhoanThu: values.tenKhoanThu,
+            SoTien: values.soTien ? Number(values.soTien) : 0,
+            BatBuoc: values.loaiPhi === "BatBuoc", // Convert string select sang boolean
+            GhiChu: values.ghiChu,
+
+            // [TODO: THOI_HAN] Khi nào BE có field ThoiHan thì uncomment dòng dưới
+            HanNop: values.hanNop || null
+        };
+
+
+        const success = await onAddSuccess(payload);
+
+        if (success) {
+            setOpen(false); // Đóng modal
+            form.reset();   // Reset form về trắng
+        }
+
+        setIsSubmitting(false);
     }
 
     return (
@@ -67,7 +101,7 @@ export function CreateFeeDialog() {
                     <Plus className="mr-2 h-4 w-4" /> Tạo khoản thu mới
                 </Button>
             </DialogTrigger>
-            
+
             <DialogContent className="sm:max-w-[550px] bg-white text-slate-900">
                 <DialogHeader>
                     <DialogTitle className="text-xl font-bold text-primary flex items-center gap-2">
@@ -81,7 +115,7 @@ export function CreateFeeDialog() {
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-3">
-                        
+
                         {/* Tên khoản thu */}
                         <FormField control={form.control} name="tenKhoanThu" render={({ field }) => (
                             <FormItem>
@@ -132,7 +166,7 @@ export function CreateFeeDialog() {
                                     </FormControl>
                                 </FormItem>
                             )} />
-                             <FormField control={form.control} name="thoiHan" render={({ field }) => (
+                            <FormField control={form.control} name="hanNop" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-slate-700 font-semibold">Hạn nộp</FormLabel>
                                     <FormControl>
@@ -154,7 +188,7 @@ export function CreateFeeDialog() {
                         )} />
 
                         <DialogFooter>
-                             <Button type="submit" className="w-full sm:w-auto shadow-md">
+                            <Button type="submit" className="w-full sm:w-auto shadow-md">
                                 <Save className="mr-2 h-4 w-4" /> Tạo khoản thu
                             </Button>
                         </DialogFooter>
