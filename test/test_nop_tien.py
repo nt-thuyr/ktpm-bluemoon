@@ -62,3 +62,4 @@ def test_nop_tien_crud(client, token_to_truong, token_ke_toan):
     # Ensure deleted
     r_check = client.get(f'/api/nop-tien/{nt_id}', headers=headers_ketoan)
     assert r_check.status_code == 404
+

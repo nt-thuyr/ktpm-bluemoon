@@ -6,6 +6,7 @@ from ..controllers.nop_tien_controller import (
     get_nop_tien_by_khoan_thu_controller,
     create_noptien_controller,
     delete_noptien_controller,
+    export_receipt_pdf_controller,
 )
 from ..utils.decorators import role_required
 from ..utils.constants import ROLE_KE_TOAN
@@ -45,4 +46,9 @@ def route_create():
 @role_required(ROLE_KE_TOAN)
 def route_delete(nop_tien_id):
     return delete_noptien_controller(nop_tien_id)
+
+@nop_tien_bp.route("/<int:nop_tien_id>/pdf", methods=["GET"])
+@role_required(ROLE_KE_TOAN)
+def route_export_pdf(nop_tien_id):
+    return export_receipt_pdf_controller(nop_tien_id)
 
