@@ -1,14 +1,17 @@
 from ..extensions import db
 from ..models.nhan_khau import NhanKhau
+from ..models.ho_khau import HoKhau
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import or_
 from datetime import datetime
 
-# Helper: Convert string 'YYYY-MM-DD' -> Python Date object
+
 def parse_date(date_str):
     if not date_str: return None
     try:
         return datetime.strptime(date_str, '%Y-%m-%d').date()
-    except ValueError: return None
+    except ValueError:
+        return None
 
 
 def serialize_nhankhau(nk: NhanKhau):
@@ -24,8 +27,6 @@ def serialize_nhankhau(nk: NhanKhau):
         "NoiCap": nk.noi_cap,
         "NgheNghiep": nk.nghe_nghiep,
         "GhiChu": nk.ghi_chu,
-
-        # [NEW] Trả về thông tin quan hệ với Hộ khẩu
         "HoKhauID": nk.ho_khau_id,
         "QuanHeVoiChuHo": nk.quan_he_voi_chu_ho,
         "NgayThemNhanKhau": str(nk.ngay_them_nhan_khau) if nk.ngay_them_nhan_khau else None
@@ -42,9 +43,31 @@ def get_nhankhau_by_id(id):
     return serialize_nhankhau(r) if r else None
 
 
+def search_nhankhau_global(keyword):
+    if not keyword:
+        return get_all_nhankhau()
+
+    search_pattern = f"%{keyword}%"
+
+    # Join với HoKhau để tìm người theo địa chỉ phòng
+    query = db.session.query(NhanKhau).outerjoin(
+        HoKhau, NhanKhau.ho_khau_id == HoKhau.so_ho_khau
+    )
+
+    query = query.filter(
+        or_(
+            NhanKhau.ho_ten.ilike(search_pattern),  # Tìm theo tên
+            NhanKhau.cccd.ilike(search_pattern),  # Tìm theo CCCD
+            HoKhau.so_nha.ilike(search_pattern)  # Tìm theo Số phòng ở
+        )
+    )
+
+    rows = query.all()
+    return [serialize_nhankhau(r) for r in rows]
+
+
 def create_nhankhau(data):
     try:
-        # [NEW] Xử lý convert ngày tháng từ String JSON -> Python Date
         ngay_sinh = parse_date(data.get("NgaySinh"))
         ngay_cap = parse_date(data.get("NgayCap"))
         ngay_them = parse_date(data.get("NgayThemNhanKhau")) or datetime.now().date()
@@ -60,8 +83,6 @@ def create_nhankhau(data):
             noi_cap=data.get("NoiCap"),
             nghe_nghiep=data.get("NgheNghiep"),
             ghi_chu=data.get("GhiChu"),
-
-            # [NEW] Mapping quan hệ 1-N ngay khi tạo
             ho_khau_id=data.get("HoKhauID"),
             quan_he_voi_chu_ho=data.get("QuanHeVoiChuHo"),
             ngay_them_nhan_khau=ngay_them
@@ -76,32 +97,21 @@ def create_nhankhau(data):
 
 def update_nhankhau(id, data):
     nk = NhanKhau.query.get(id)
-    if not nk:
-        return None
+    if not nk: return None
 
-    # Danh sách trường cho phép update (Mapping JSON key -> Model attr)
     field_map = {
-        "HoTen": "ho_ten",
-        "GioiTinh": "gioi_tinh",
-        "DanToc": "dan_toc",
-        "TonGiao": "ton_giao",
-        "cccd": "cccd",
-        "NoiCap": "noi_cap",
-        "NgheNghiep": "nghe_nghiep",
-        "GhiChu": "ghi_chu",
-        "QuanHeVoiChuHo": "quan_he_voi_chu_ho",
-        "HoKhauID": "ho_khau_id"
+        "HoTen": "ho_ten", "GioiTinh": "gioi_tinh", "DanToc": "dan_toc",
+        "TonGiao": "ton_giao", "cccd": "cccd", "NoiCap": "noi_cap",
+        "NgheNghiep": "nghe_nghiep", "GhiChu": "ghi_chu",
+        "QuanHeVoiChuHo": "quan_he_voi_chu_ho", "HoKhauID": "ho_khau_id"
     }
 
     has_change = False
-
-    # Update các trường string thông thường
     for json_key, model_attr in field_map.items():
         if json_key in data:
             setattr(nk, model_attr, data[json_key])
             has_change = True
 
-    # [NEW] Update các trường Date riêng biệt
     if "NgaySinh" in data:
         nk.ngay_sinh = parse_date(data["NgaySinh"])
         has_change = True
@@ -115,15 +125,15 @@ def update_nhankhau(id, data):
         except IntegrityError:
             db.session.rollback()
             return "conflict"
-
     return serialize_nhankhau(nk)
 
 
 def delete_nhankhau(id):
     nk = NhanKhau.query.get(id)
     if nk:
-        # [Todo] Logic: Nếu là Chủ hộ thì không cho xóa, bắt phải tách hộ trước?
-        # Tạm thời xóa cứng
+        if nk.quan_he_voi_chu_ho == "Chủ hộ":
+            return "is_chu_ho"
+
         db.session.delete(nk)
         db.session.commit()
         return True

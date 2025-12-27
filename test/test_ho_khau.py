@@ -15,7 +15,6 @@ def test_ho_khau_crud(client, token_to_truong):
         'Duong': 'Pham Van Dong',
         'Phuong': 'Phuong A',
         'Quan': 'Quan B',
-        'DienTich': 75.5
     }
     r2 = client.post('/api/ho-khau/', json=hk_payload, headers=headers)
     assert r2.status_code == 201
