@@ -1,46 +1,24 @@
 from ..extensions import db
 from ..models.nhan_khau import NhanKhau
 from ..models.ho_khau import HoKhau
+from ..models.lich_su_ho_khau import LichSuHoKhau  # <--- Import model Lịch Sử
+from ..schemas.nhan_khau_schema import NhanKhauSchema
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_
 from datetime import datetime
 
-
-def parse_date(date_str):
-    if not date_str: return None
-    try:
-        return datetime.strptime(date_str, '%Y-%m-%d').date()
-    except ValueError:
-        return None
-
-
-def serialize_nhankhau(nk: NhanKhau):
-    return {
-        "id": nk.id,
-        "HoTen": nk.ho_ten,
-        "NgaySinh": str(nk.ngay_sinh) if nk.ngay_sinh else None,
-        "GioiTinh": nk.gioi_tinh,
-        "DanToc": nk.dan_toc,
-        "TonGiao": nk.ton_giao,
-        "cccd": nk.cccd,
-        "NgayCap": str(nk.ngay_cap) if nk.ngay_cap else None,
-        "NoiCap": nk.noi_cap,
-        "NgheNghiep": nk.nghe_nghiep,
-        "GhiChu": nk.ghi_chu,
-        "HoKhauID": nk.ho_khau_id,
-        "QuanHeVoiChuHo": nk.quan_he_voi_chu_ho,
-        "NgayThemNhanKhau": str(nk.ngay_them_nhan_khau) if nk.ngay_them_nhan_khau else None
-    }
+nk_schema = NhanKhauSchema()
+list_nk_schema = NhanKhauSchema(many=True)
 
 
 def get_all_nhankhau():
     rows = NhanKhau.query.all()
-    return [serialize_nhankhau(r) for r in rows]
+    return list_nk_schema.dump(rows)
 
 
 def get_nhankhau_by_id(id):
     r = NhanKhau.query.get(id)
-    return serialize_nhankhau(r) if r else None
+    return nk_schema.dump(r) if r else None
 
 
 def search_nhankhau_global(keyword):
@@ -49,7 +27,6 @@ def search_nhankhau_global(keyword):
 
     search_pattern = f"%{keyword}%"
 
-    # Join với HoKhau để tìm người theo địa chỉ phòng
     query = db.session.query(NhanKhau).outerjoin(
         HoKhau, NhanKhau.ho_khau_id == HoKhau.so_ho_khau
     )
@@ -63,34 +40,36 @@ def search_nhankhau_global(keyword):
     )
 
     rows = query.all()
-    return [serialize_nhankhau(r) for r in rows]
+    return list_nk_schema.dump(rows)
 
 
 def create_nhankhau(data):
     try:
-        ngay_sinh = parse_date(data.get("NgaySinh"))
-        ngay_cap = parse_date(data.get("NgayCap"))
-        ngay_them = parse_date(data.get("NgayThemNhanKhau")) or datetime.now().date()
+        clean_data = nk_schema.load(data)
 
-        nk = NhanKhau(
-            ho_ten=data.get("HoTen"),
-            ngay_sinh=ngay_sinh,
-            gioi_tinh=data.get("GioiTinh"),
-            dan_toc=data.get("DanToc"),
-            ton_giao=data.get("TonGiao"),
-            cccd=data.get("cccd"),
-            ngay_cap=ngay_cap,
-            noi_cap=data.get("NoiCap"),
-            nghe_nghiep=data.get("NgheNghiep"),
-            ghi_chu=data.get("GhiChu"),
-            ho_khau_id=data.get("HoKhauID"),
-            quan_he_voi_chu_ho=data.get("QuanHeVoiChuHo"),
-            ngay_them_nhan_khau=ngay_them
-        )
+        if not clean_data.get("ngay_them_nhan_khau"):
+            clean_data["ngay_them_nhan_khau"] = datetime.now().date()
+
+        nk = NhanKhau(**clean_data)
         db.session.add(nk)
+        db.session.flush()  # Để lấy ID của nk mới tạo
+
+        # Nếu nhân khẩu mới có Hộ khẩu -> Ghi lịch sử "Chuyển đến" (1)
+        if nk.ho_khau_id:
+            ls = LichSuHoKhau(
+                nhan_khau_id=nk.id,
+                ho_khau_id=nk.ho_khau_id,
+                loai_thay_doi=1,
+                thoi_gian=datetime.now().date()
+            )
+            db.session.add(ls)
+
         db.session.commit()
-        return serialize_nhankhau(nk)
+        return nk_schema.dump(nk)
     except IntegrityError:
+        db.session.rollback()
+        return None
+    except Exception:
         db.session.rollback()
         return None
 
@@ -99,33 +78,51 @@ def update_nhankhau(id, data):
     nk = NhanKhau.query.get(id)
     if not nk: return None
 
-    field_map = {
-        "HoTen": "ho_ten", "GioiTinh": "gioi_tinh", "DanToc": "dan_toc",
-        "TonGiao": "ton_giao", "cccd": "cccd", "NoiCap": "noi_cap",
-        "NgheNghiep": "nghe_nghiep", "GhiChu": "ghi_chu",
-        "QuanHeVoiChuHo": "quan_he_voi_chu_ho", "HoKhauID": "ho_khau_id"
-    }
+    # Lưu lại ho_khau_id cũ để so sánh
+    old_ho_khau_id = nk.ho_khau_id
+
+    clean_data = nk_schema.load(data, partial=True)
 
     has_change = False
-    for json_key, model_attr in field_map.items():
-        if json_key in data:
-            setattr(nk, model_attr, data[json_key])
+    for attr, value in clean_data.items():
+        if getattr(nk, attr) != value:
+            setattr(nk, attr, value)
             has_change = True
-
-    if "NgaySinh" in data:
-        nk.ngay_sinh = parse_date(data["NgaySinh"])
-        has_change = True
-    if "NgayCap" in data:
-        nk.ngay_cap = parse_date(data["NgayCap"])
-        has_change = True
 
     if has_change:
         try:
+            # Kiểm tra sự thay đổi Hộ khẩu
+            new_ho_khau_id = clean_data.get("ho_khau_id", old_ho_khau_id)
+
+            # Nếu Hộ khẩu thay đổi (Khác nhau và không phải giữ nguyên None)
+            if old_ho_khau_id != new_ho_khau_id:
+
+                # 1. Nếu trước đó có hộ khẩu -> Ghi lịch sử "Chuyển đi" (2) khỏi hộ cũ
+                if old_ho_khau_id:
+                    ls_out = LichSuHoKhau(
+                        nhan_khau_id=nk.id,
+                        ho_khau_id=old_ho_khau_id,
+                        loai_thay_doi=2,  # Chuyển đi
+                        thoi_gian=datetime.now().date()
+                    )
+                    db.session.add(ls_out)
+
+                # 2. Nếu bây giờ có hộ khẩu mới -> Ghi lịch sử "Chuyển đến" (1) vào hộ mới
+                if new_ho_khau_id:
+                    ls_in = LichSuHoKhau(
+                        nhan_khau_id=nk.id,
+                        ho_khau_id=new_ho_khau_id,
+                        loai_thay_doi=1,  # Chuyển đến
+                        thoi_gian=datetime.now().date()
+                    )
+                    db.session.add(ls_in)
+
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
             return "conflict"
-    return serialize_nhankhau(nk)
+
+    return nk_schema.dump(nk)
 
 
 def delete_nhankhau(id):
@@ -133,6 +130,20 @@ def delete_nhankhau(id):
     if nk:
         if nk.quan_he_voi_chu_ho == "Chủ hộ":
             return "is_chu_ho"
+
+        # Nếu người bị xóa đang thuộc 1 hộ khẩu -> Ghi lịch sử "Chuyển đi/Xóa" (2)
+        if nk.ho_khau_id:
+            try:
+                ls = LichSuHoKhau(
+                    nhan_khau_id=nk.id,
+                    ho_khau_id=nk.ho_khau_id,
+                    loai_thay_doi=2,
+                    thoi_gian=datetime.now().date()
+                )
+                db.session.add(ls)
+                db.session.flush()
+            except Exception:
+                pass
 
         db.session.delete(nk)
         db.session.commit()

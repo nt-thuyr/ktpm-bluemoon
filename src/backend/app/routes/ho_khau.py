@@ -5,7 +5,7 @@ from ..controllers.ho_khau_controller import (
     create_hokhau_controller,
     update_hokhau_controller,
     delete_hokhau_controller,
-    tach_hokhau_controller
+    tach_hokhau_controller, get_lich_su_controller
 )
 from ..utils.decorators import role_required
 from ..utils.constants import ROLE_TO_TRUONG
@@ -24,6 +24,11 @@ def route_get_all():
 @role_required()
 def route_get_by_id(id):
     return get_hokhau_by_id_controller(id)
+
+@ho_khau_bp.route("/<int:id>/lich-su", methods=["GET"])
+@role_required()
+def route_get_history(id):
+    return get_lich_su_controller(id)
 
 # --- API THÊM MỚI (Chỉ Tổ Trưởng) ---
 @ho_khau_bp.route("/", methods=["POST"])

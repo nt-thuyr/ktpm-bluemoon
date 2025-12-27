@@ -45,7 +45,7 @@ def create_tamtru(data):
     nk = NhanKhau.query.get(nk_id)
     if not nk: return "nhan_khau_not_found"
 
-    # 2. Logic nghiệp vụ (Optional - tùy bạn có muốn chặt chẽ không)
+    # 2. Logic nghiệp vụ
     loai_hinh = data.get("trang_thai")  # "Tạm trú" / "Tạm vắng"
 
     # Nếu là Tạm vắng -> Người này phải đang thuộc một hộ khẩu nào đó trong chung cư
@@ -74,6 +74,29 @@ def create_tamtru(data):
         db.session.rollback()
         return None
 
+def update_tamtru(id, data):
+    tt = TamTruTamVang.query.get(id)
+    if not tt: return None
+    # --- CHỈ CHO PHÉP SỬA THÔNG TIN CHI TIẾT ---
+    if "dia_chi" in data:
+        tt.dia_chi = data["dia_chi"]
+
+    if "noi_dung_de_nghi" in data:
+        tt.noi_dung_de_nghi = data["noi_dung_de_nghi"]
+
+    if "thoi_gian" in data:
+        try:
+            tt.thoi_gian = datetime.strptime(data["thoi_gian"], '%Y-%m-%d').date()
+        except ValueError:
+            return "invalid_date"
+    # --- KHÔNG CHO PHÉP SỬA 'nhan_khau_id' HOẶC 'trang_thai' ---
+    try:
+        db.session.commit()
+        nk = NhanKhau.query.get(tt.nhan_khau_id)
+        return serialize_tamtru(tt, nk.ho_ten if nk else None, nk.cccd if nk else None)
+    except Exception:
+        db.session.rollback()
+        return "conflict"
 
 def delete_tamtru(id):
     tt = TamTruTamVang.query.get(id)

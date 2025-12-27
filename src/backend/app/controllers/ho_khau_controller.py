@@ -2,7 +2,7 @@ from flask import jsonify, request
 from ..services.ho_khau_service import (
     get_hokhau_by_id, search_hokhau_global,
     create_hokhau, update_hokhau, delete_hokhau,
-    tach_hokhau
+    tach_hokhau, get_lich_su_ho_khau
 )
 
 
@@ -80,3 +80,13 @@ def delete_hokhau_controller(id):
         return jsonify({"message": "Không tìm thấy hộ khẩu để xóa"}), 404
 
     return jsonify({"message": "Đã xóa thành công"}), 200
+
+def get_lich_su_controller(ho_khau_id):
+    result = get_lich_su_ho_khau(ho_khau_id)
+    if result is None:
+        return jsonify({"message": "Không tìm thấy hộ khẩu"}), 404
+
+    return jsonify({
+        "SoHoKhau": ho_khau_id,
+        "LichSu": result
+    }), 200
