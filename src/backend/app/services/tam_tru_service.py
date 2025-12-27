@@ -76,42 +76,24 @@ def create_tamtru(data):
 
 def update_tamtru(id, data):
     tt = TamTruTamVang.query.get(id)
-    if not tt:
-        return None
-
-    # 1. Parse và update ngày (nếu có gửi lên)
-    if "thoi_gian" in data:
-        try:
-            tt.thoi_gian = datetime.strptime(data["thoi_gian"], '%Y-%m-%d').date()
-        except ValueError:
-            return "invalid_date"
-
-    # 2. Update các thông tin cơ bản
+    if not tt: return None
+    # --- CHỈ CHO PHÉP SỬA THÔNG TIN CHI TIẾT ---
     if "dia_chi" in data:
         tt.dia_chi = data["dia_chi"]
 
     if "noi_dung_de_nghi" in data:
         tt.noi_dung_de_nghi = data["noi_dung_de_nghi"]
 
-    # 3. Update trạng thái
-    if "trang_thai" in data:
-        new_trang_thai = data["trang_thai"]
-
-        # Nếu đổi sang "Tạm vắng", cần check lại xem nhân khẩu có hộ khẩu chưa
-        if new_trang_thai == "Tạm vắng":
-            nk = NhanKhau.query.get(tt.nhan_khau_id)
-            if nk and not nk.ho_khau_id:
-                return "tam_vang_requires_hokhau"
-
-        tt.trang_thai = new_trang_thai
-
+    if "thoi_gian" in data:
+        try:
+            tt.thoi_gian = datetime.strptime(data["thoi_gian"], '%Y-%m-%d').date()
+        except ValueError:
+            return "invalid_date"
+    # --- KHÔNG CHO PHÉP SỬA 'nhan_khau_id' HOẶC 'trang_thai' ---
     try:
         db.session.commit()
-
-        # Lấy lại thông tin Nhân khẩu để trả về JSON đầy đủ
         nk = NhanKhau.query.get(tt.nhan_khau_id)
         return serialize_tamtru(tt, nk.ho_ten if nk else None, nk.cccd if nk else None)
-
     except Exception:
         db.session.rollback()
         return "conflict"
