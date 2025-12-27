@@ -9,21 +9,20 @@ class HoKhau(db.Model):
     phuong = db.Column(db.String(50))
     quan = db.Column(db.String(50))
     ngay_lam_ho_khau = db.Column(db.Date)
-    dien_tich = db.Column(db.Numeric(10, 2), default=0)
 
     chu_ho_id = db.Column(db.Integer, db.ForeignKey("nhan_khau.id", use_alter=True), nullable=False, unique=True)
 
     # 1. Quan hệ Chủ hộ (Ai là chủ cái hộ này?)
     chu_ho = db.relationship(
         "NhanKhau",
-        foreign_keys=[chu_ho_id],  # <--- QUAN TRỌNG: Phải chỉ định dùng cột chu_ho_id
+        foreign_keys=[chu_ho_id],
         back_populates="ho_khau_chu"
     )
 
     # 2. Quan hệ Thành viên (Những ai thuộc hộ này?)
     thanh_vien_ho = db.relationship(
         "NhanKhau",
-        foreign_keys="NhanKhau.ho_khau_id",  # <--- Chỉ định dùng cột ho_khau_id bên bảng NhanKhau
+        foreign_keys="NhanKhau.ho_khau_id",
         back_populates="ho_khau",
         lazy=True
     )

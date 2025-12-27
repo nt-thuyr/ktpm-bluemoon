@@ -14,7 +14,13 @@ khoan_thu_bp = Blueprint("khoan_thu", __name__)
 @khoan_thu_bp.route("/", methods=["GET"])
 @role_required()
 def route_get_all():
-    return get_all_khoanthu_controller()
+    # Lấy tham số query string từ URL (ví dụ: /?tu_ngay=2023-01-01&han_nop=2023-12-31)
+    tu_ngay = request.args.get('tu_ngay')
+    den_ngay = request.args.get('den_ngay')
+    han_nop = request.args.get('han_nop')
+
+    return get_all_khoanthu_controller(tu_ngay, den_ngay, han_nop)
+
 
 @khoan_thu_bp.route("/<int:khoan_thu_id>", methods=["GET"])
 @role_required()
@@ -43,4 +49,3 @@ def route_update(khoan_thu_id):
 @role_required(ROLE_KE_TOAN)
 def route_delete(khoan_thu_id):
     return delete_khoanthu_controller(khoan_thu_id)
-

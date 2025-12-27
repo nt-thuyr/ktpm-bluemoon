@@ -7,31 +7,33 @@ from ..controllers.nhan_khau_controller import (
     delete_nhankhau_controller
 )
 from ..utils.decorators import role_required
-from ..utils.constants import ROLE_TO_TRUONG  # Import hằng số
+from ..utils.constants import ROLE_TO_TRUONG
 
 nhan_khau_bp = Blueprint("nhan_khau", __name__)
 
-# --- AI CŨNG XEM ĐƯỢC (Miễn là đã đăng nhập) ---
+# --- API LẤY DANH SÁCH & TÌM KIẾM ---
+# URL: /api/nhankhau?keyword=...
 @nhan_khau_bp.route("/", methods=["GET"])
 @role_required()
 def route_get_all():
-    # Kế toán cần API này để lấy danh sách người đóng tiền
     return get_all_nhankhau_controller()
 
+# --- API CHI TIẾT ---
 @nhan_khau_bp.route("/<int:id>", methods=["GET"])
 @role_required()
 def route_get_by_id(id):
     return get_nhankhau_by_id_controller(id)
 
-# --- CHỈ TỔ TRƯỞNG MỚI ĐƯỢC THAY ĐỔI ---
+# --- API THÊM (Chỉ Tổ Trưởng) ---
 @nhan_khau_bp.route("/", methods=["POST"])
-@role_required(ROLE_TO_TRUONG)  # Dùng hằng số thay vì string cứng
+@role_required(ROLE_TO_TRUONG)
 def route_create():
     try:
         return create_nhankhau_controller(request.get_json())
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# --- API SỬA (Chỉ Tổ Trưởng) ---
 @nhan_khau_bp.route("/<int:id>", methods=["PUT"])
 @role_required(ROLE_TO_TRUONG)
 def route_update(id):
@@ -40,6 +42,7 @@ def route_update(id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# --- API XÓA (Chỉ Tổ Trưởng) ---
 @nhan_khau_bp.route("/<int:id>", methods=["DELETE"])
 @role_required(ROLE_TO_TRUONG)
 def route_delete(id):

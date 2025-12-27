@@ -2,11 +2,11 @@ from ..extensions import db
 from ..models.ho_khau import HoKhau
 from ..models.nhan_khau import NhanKhau
 from ..models.lich_su_ho_khau import LichSuHoKhau
+from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
 
-# Helper parse ngày
 def parse_date(date_str):
     if not date_str: return None
     try:
@@ -16,10 +16,7 @@ def parse_date(date_str):
 
 
 def serialize_hokhau(hk: HoKhau):
-    # Lấy thông tin chủ hộ (nếu có)
     ten_chu_ho = hk.chu_ho.ho_ten if hk.chu_ho else None
-
-    # Lấy danh sách thành viên trong hộ
     ds_thanh_vien = []
     if hk.thanh_vien_ho:
         for tv in hk.thanh_vien_ho:
@@ -36,11 +33,10 @@ def serialize_hokhau(hk: HoKhau):
         "Duong": hk.duong,
         "Phuong": hk.phuong,
         "Quan": hk.quan,
-        "DienTich": float(hk.dien_tich) if hk.dien_tich else 0.0,  # Quan trọng để tính tiền
         "NgayLamHoKhau": str(hk.ngay_lam_ho_khau) if hk.ngay_lam_ho_khau else None,
         "ChuHoID": hk.chu_ho_id,
         "TenChuHo": ten_chu_ho,
-        "ThanhVien": ds_thanh_vien  # Trả về list thành viên để Frontend hiển thị
+        "ThanhVien": ds_thanh_vien
     }
 
 
@@ -49,44 +45,68 @@ def get_all_hokhau():
     return [serialize_hokhau(r) for r in rows]
 
 
-def get_hokhau_by_id(id):  # Sửa lỗi tên hàm cũ
+def get_hokhau_by_id(id):
     r = HoKhau.query.get(id)
     return serialize_hokhau(r) if r else None
 
 
+def search_hokhau_global(keyword):
+    """
+    Tìm kiếm trên nhiều cột cùng lúc với 1 từ khóa duy nhất (Global Search)
+    Input: "1206" -> Tìm thấy hộ ở phòng 1206
+    Input: "Tuấn" -> Tìm thấy hộ có chủ hộ tên Tuấn
+    """
+    if not keyword:
+        return get_all_hokhau()
+
+    search_pattern = f"%{keyword}%"
+
+    # 1. Khởi tạo query và Join với bảng NhanKhau để tìm theo tên chủ hộ
+    query = db.session.query(HoKhau).join(
+        NhanKhau, HoKhau.chu_ho_id == NhanKhau.id
+    )
+
+    # 2. Sử dụng OR để quét trên nhiều trường
+    query = query.filter(
+        or_(
+            HoKhau.so_nha.ilike(search_pattern),       # Tìm theo số phòng
+            NhanKhau.ho_ten.ilike(search_pattern),     # Tìm theo tên chủ hộ
+            NhanKhau.cccd.ilike(search_pattern)        # Tìm theo CCCD chủ hộ
+        )
+    )
+
+    rows = query.all()
+    return [serialize_hokhau(r) for r in rows]
+
+
 def create_hokhau(data):
     try:
-        # Validate: Chủ hộ phải tồn tại
         chu_ho_id = data.get("ChuHoID")
         chu_ho = NhanKhau.query.get(chu_ho_id)
-        if not chu_ho:
-            return "chu_ho_not_found"
+        if not chu_ho: return "chu_ho_not_found"
 
         hk = HoKhau(
             so_nha=data.get("SoNha"),
             duong=data.get("Duong"),
             phuong=data.get("Phuong"),
             quan=data.get("Quan"),
-            dien_tich=data.get("DienTich", 0),  # Mặc định 0 nếu không nhập
             ngay_lam_ho_khau=parse_date(data.get("NgayLamHoKhau")) or datetime.now().date(),
             chu_ho_id=chu_ho_id
         )
         db.session.add(hk)
-        db.session.flush()  # Để lấy hk.so_ho_khau ngay lập tức
+        db.session.flush()
 
-        # Logic nghiệp vụ: Khi tạo hộ, set ngay Chủ hộ vào hộ này
+        # Setup chủ hộ
         chu_ho.ho_khau_id = hk.so_ho_khau
         chu_ho.quan_he_voi_chu_ho = "Chủ hộ"
 
-        # Ghi lịch sử
         ls = LichSuHoKhau(
             nhan_khau_id=chu_ho_id,
             ho_khau_id=hk.so_ho_khau,
-            loai_thay_doi=1,  # 1: Thêm mới/Chuyển đến
+            loai_thay_doi=1,    # 1: thêm mới/chuyển đến
             thoi_gian=datetime.now().date()
         )
         db.session.add(ls)
-
         db.session.commit()
         return serialize_hokhau(hk)
     except IntegrityError:
@@ -98,108 +118,89 @@ def update_hokhau(id, data):
     hk = HoKhau.query.get(id)
     if not hk: return None
 
-    allowed_fields = {
-        "SoNha": "so_nha", "Duong": "duong",
-        "Phuong": "phuong", "Quan": "quan",
-        "DienTich": "dien_tich",  # Cho phép sửa diện tích
-        "ChuHoID": "chu_ho_id"
-    }
+    # Xử lý thay đổi Chủ Hộ
+    new_chu_ho_id = data.get("ChuHoID")
+    if new_chu_ho_id and new_chu_ho_id != hk.chu_ho_id:
+        old_chu_ho = NhanKhau.query.get(hk.chu_ho_id)
+        new_chu_ho = NhanKhau.query.get(new_chu_ho_id)
 
-    # Nếu đổi chủ hộ, cần logic phức tạp hơn (tạm thời chỉ update field)
-    # TODO: Nếu đổi chủ hộ -> update quan hệ chủ hộ cũ thành thành viên
+        if new_chu_ho:
+            # 1. Hạ chủ hộ cũ xuống làm thành viên
+            if old_chu_ho:
+                old_chu_ho.quan_he_voi_chu_ho = "Thành viên"
 
-    has_changed = False
-    for json_key, model_attr in allowed_fields.items():
-        if json_key in data:
-            setattr(hk, model_attr, data[json_key])
-            has_changed = True
+            # 2. Đưa người mới lên làm chủ hộ
+            new_chu_ho.ho_khau_id = hk.so_ho_khau  # Đảm bảo thuộc hộ này
+            new_chu_ho.quan_he_voi_chu_ho = "Chủ hộ"
+            hk.chu_ho_id = new_chu_ho.id
+
+            # TODO: Có thể thêm logic ghi Lịch Sử ở đây nếu cần thiết
+
+    # Update các field thông thường
+    allowed_fields = ["SoNha", "Duong", "Phuong", "Quan"]
+    for k in allowed_fields:
+        if k in data:
+            setattr(hk, k.lower().replace("so", "so_"), data[k])
 
     if "NgayLamHoKhau" in data:
         hk.ngay_lam_ho_khau = parse_date(data["NgayLamHoKhau"])
-        has_changed = True
 
-    if has_changed:
-        try:
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            return "conflict"
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return "conflict"
+
     return serialize_hokhau(hk)
 
 
-# --- TÍNH NĂNG MỚI: TÁCH HỘ KHẨU ---
 def tach_hokhau(data):
-    """
-    Input data:
-    {
-        "idHoKhauCu": 1,
-        "idChuHoMoi": 5, (Người này đang ở hộ cũ hoặc chưa có hộ)
-        "dsThanhVienSangHoMoi": [5, 6, 7], (List ID nhân khẩu)
-        "DiaChiMoi": "...",
-        "DienTichMoi": 80
-    }
-    """
     try:
-        # 1. Tạo hộ mới
         chu_ho_moi_id = data.get("idChuHoMoi")
         hk_moi = HoKhau(
-            so_nha=data.get("DiaChiMoi"),  # Giản lược
-            duong=data.get("Duong"),  # Hoặc lấy chi tiết từ input
-            dien_tich=data.get("DienTichMoi", 0),
+            so_nha=data.get("DiaChiMoi"),
+            duong=data.get("Duong"),
             ngay_lam_ho_khau=datetime.now().date(),
             chu_ho_id=chu_ho_moi_id
         )
         db.session.add(hk_moi)
-        db.session.flush()  # Có ID mới
+        db.session.flush()
 
-        # 2. Di chuyển thành viên sang hộ mới
         ds_thanh_vien_ids = data.get("dsThanhVienSangHoMoi", [])
-
-        # Đảm bảo chủ hộ mới cũng nằm trong danh sách chuyển
         if chu_ho_moi_id not in ds_thanh_vien_ids:
             ds_thanh_vien_ids.append(chu_ho_moi_id)
 
         for nk_id in ds_thanh_vien_ids:
             nk = NhanKhau.query.get(nk_id)
             if nk:
-                # Ghi lịch sử chuyển đi ở hộ cũ (nếu có)
                 if nk.ho_khau_id:
-                    ls_ra = LichSuHoKhau(
-                        nhan_khau_id=nk.id,
-                        ho_khau_id=nk.ho_khau_id,
-                        loai_thay_doi=2,  # 2: Chuyển đi
-                        thoi_gian=datetime.now().date()
-                    )
+                    ls_ra = LichSuHoKhau(nhan_khau_id=nk.id, ho_khau_id=nk.ho_khau_id, loai_thay_doi=2,
+                                         thoi_gian=datetime.now().date())
                     db.session.add(ls_ra)
 
-                # Update sang hộ mới
                 nk.ho_khau_id = hk_moi.so_ho_khau
-                if nk.id == chu_ho_moi_id:
-                    nk.quan_he_voi_chu_ho = "Chủ hộ"
-                else:
-                    nk.quan_he_voi_chu_ho = "Thành viên"  # Hoặc bắt input nhập cụ thể
+                nk.quan_he_voi_chu_ho = "Chủ hộ" if nk.id == chu_ho_moi_id else "Thành viên"
 
-                # Ghi lịch sử chuyển đến hộ mới
-                ls_vao = LichSuHoKhau(
-                    nhan_khau_id=nk.id,
-                    ho_khau_id=hk_moi.so_ho_khau,
-                    loai_thay_doi=1,  # 1: Chuyển đến
-                    thoi_gian=datetime.now().date()
-                )
+                ls_vao = LichSuHoKhau(nhan_khau_id=nk.id, ho_khau_id=hk_moi.so_ho_khau, loai_thay_doi=1,
+                                      thoi_gian=datetime.now().date())
                 db.session.add(ls_vao)
 
         db.session.commit()
         return serialize_hokhau(hk_moi)
     except Exception as e:
         db.session.rollback()
-        print(e)
         return None
 
 
 def delete_hokhau(id):
     hk = HoKhau.query.get(id)
     if not hk: return False
-    # TODO: Cần check xem hộ còn người không? Nếu còn người thì không cho xóa
+
+    # Check còn thành viên không?
+    count_members = NhanKhau.query.filter_by(ho_khau_id=id).count()
+    if count_members > 0:
+        return "has_members"  # Frontend cần xử lý lỗi này (báo phải tách hộ hết trước)
+
     db.session.delete(hk)
     db.session.commit()
     return True
