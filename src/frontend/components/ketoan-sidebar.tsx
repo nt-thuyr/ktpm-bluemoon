@@ -1,12 +1,6 @@
 "use client"
 
 import {
-    LogOut,
-    Settings,
-    Users
-} from "lucide-react";
-
-import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
@@ -17,18 +11,23 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
+
+
+import {
+    LogOut,
+    Settings,
+} from "lucide-react";
+
 import { Banknote, Home } from "lucide-react";
 
 // Menu items
 const items = [
     { title: "Dashboard", url: "/", icon: Home },
-    { title: "Hộ gia đình", url: "/households", icon: Users },
-    { title: "Cư dân", url: "/residents", icon: Users },
     { title: "Thu phí", url: "/fees", icon: Banknote },
     { title: "Tài khoản", url: "/profile", icon: Settings },
 ]
 
-export function AppSidebar() {
+export function KeToanSidebar() {
     return (
         <Sidebar
             className="bg-primary-gradient text-white border-none w-64 min-h-screen"

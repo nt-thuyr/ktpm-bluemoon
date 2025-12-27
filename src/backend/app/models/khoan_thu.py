@@ -11,7 +11,7 @@ class KhoanThu(db.Model):
     bat_buoc = db.Column(db.Boolean, nullable=False, default=True)
     ghi_chu = db.Column(db.Text)
     ngay_tao = db.Column(db.Date, default=datetime.now().date)
-    thoi_han = db.Column(db.Date, nullable=True)  # Có thể null nếu là khoản đóng góp tự nguyện dài hạn
+    han_nop = db.Column(db.Date, nullable=True)
 
     # Quan hệ
     nop_tien = db.relationship("NopTien", back_populates="khoan_thu", lazy=True)

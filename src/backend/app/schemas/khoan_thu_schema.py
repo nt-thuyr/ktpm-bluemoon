@@ -16,7 +16,9 @@ class KhoanThuSchema(Schema):
     so_tien = fields.Float(required=True, data_key="SoTien")
     bat_buoc = fields.Bool(required=True, data_key="BatBuoc")
     ghi_chu = fields.Str(data_key="GhiChu", allow_none=True)
-
+    han_nop = fields.Date(allow_none=True, data_key="HanNop")
+    ngay_tao = fields.Date(allow_none=True, data_key="NgayTao")
+    
     @pre_load
     def normalize_keys(self, data, **kwargs):
         mapping = {
@@ -24,6 +26,7 @@ class KhoanThuSchema(Schema):
             "SoTien": ["SoTien", "soTien", "so_tien"],
             "BatBuoc": ["BatBuoc", "batBuoc", "bat_buoc"],
             "GhiChu": ["GhiChu", "ghiChu", "ghi_chu"],
+            "HanNop": ["HanNop", "hanNop", "han_nop"],
         }
 
         normalized_data = data.copy()

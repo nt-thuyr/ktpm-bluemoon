@@ -10,7 +10,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Resident } from "@/lib/types/resident";
+import { Resident } from "@/lib/types/models/resident";
 interface DeleteResidentDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;

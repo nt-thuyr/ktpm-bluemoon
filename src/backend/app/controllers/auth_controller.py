@@ -3,7 +3,6 @@ from flask_jwt_extended import create_access_token, get_jwt
 from ..services.auth_service import *
 from ..extensions import jwt_blocklist  # Import set blocklist
 
-
 def login_controller(payload):
     if not payload or "username" not in payload or "password" not in payload:
         return jsonify({"message": "Thiếu username hoặc password"}), 400

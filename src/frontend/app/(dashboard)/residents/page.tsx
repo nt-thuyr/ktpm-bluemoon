@@ -1,5 +1,7 @@
+"use client"
 import { CreateResidentDialog } from "@/components/residents/CreateResidentDialog"
 import { ResidentsTable } from "@/components/residents/ResidentsTable"
+import { useResidents } from "@/lib/hooks/use-residents"
 import { Users } from "lucide-react"
 // Trang nay gom:
 // Header: Tiêu đề + Breadcrumb 
@@ -7,7 +9,10 @@ import { Users } from "lucide-react"
 // Table: Hiển thị dữ liệu.
 
 
+
 export default function ResidentsPage() {
+    const { residents, createResident, isLoading } = useResidents();
+
     return (
         <div className="space-y-8">
             {/* HEADER SECTION */}
@@ -26,26 +31,18 @@ export default function ResidentsPage() {
                 {/* <Button className="shadow-md font-medium">
                     <Plus className="mr-2 h-4 w-4" /> Thêm cư dân mới
                 </Button> */}
-                <CreateResidentDialog />
+                <CreateResidentDialog onCreate={createResident.mutateAsync} />
 
             </div>
 
-            {/* DATA TABLE PLACEHOLDER (Empty State) */}
-
+            {/* TABLE SECTION */}
             <div className="flex h-[500px] shrink-0 items-center justify-center rounded-md border border-dashed border-slate-300 bg-slate-50/50">
                 <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
                     <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 mb-4">
                         <Users className="h-10 w-10 text-muted-foreground/40" />
                     </div>
 
-                    <ResidentsTable />
-                    {/* <p className="mb-4 mt-2 text-sm text-muted-foreground max-w-xs">
-                        Danh sách cư dân hiện đang trống. Hãy thêm cư dân mới hoặc nhập dữ liệu từ Excel.
-                    </p> */}
-
-                    {/* <Button variant="outline" className="border-primary/20 text-primary hover:bg-primary/5">
-                        Tải lại dữ liệu
-                    </Button> */}
+                    <ResidentsTable residents={residents} isLoading={isLoading} />
                 </div>
             </div>
         </div>

@@ -1,3 +1,4 @@
+from datetime import date
 from ..extensions import db
 from ..models.khoan_thu import KhoanThu
 from ..schemas.khoan_thu_schema import KhoanThuSchema

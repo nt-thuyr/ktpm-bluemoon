@@ -1,65 +1,76 @@
-import { Household } from "@/lib/types/household";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, UserCheck } from "lucide-react";
+"use client";
 
-interface HouseholdDetailCardProps {
-    household: Household;
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { HouseholdMember } from "@/lib/types/models/household"; // Nhớ import đúng type
+import { MoreHorizontal, ShieldCheck, UserMinus } from "lucide-react";
+
+interface Props {
+    members: HouseholdMember[];
 }
 
-export function HouseholdDetailCard({ household }: HouseholdDetailCardProps) {
+export function HouseholdMembersTable({ members }: Props) {
     return (
-        <Card className="border-l-4 border-l-blue-600 shadow-sm">
-            <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle className="text-2xl font-bold text-blue-900">
-                            Hộ khẩu số: {household.id}
-                        </CardTitle>
-                        <p className="text-muted-foreground mt-1 text-sm">
-                            Quản lý thông tin cư trú
-                        </p>
-                    </div>
-                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 text-sm px-3 py-1">
-                        Đang hoạt động
-                    </Badge>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                    <div className="flex items-start gap-3">
-                        <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                            <UserCheck className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Chủ hộ hiện tại</p>
-                            <p className="text-lg font-semibold text-slate-800">{household.chuHo}</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                        <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
-                            <MapPin className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Địa chỉ thường trú</p>
-                            <p className="text-base font-medium text-slate-800">
-                                {household.soNha} {household.duong}, {household.phuong}, {household.quan}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                        <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
-                            <Calendar className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Ngày lập sổ</p>
-                            <p className="text-base font-medium text-slate-800">{household.ngayLap}</p>
-                        </div>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
+        <div className="rounded-md border bg-white shadow-sm">
+            <Table>
+                <TableHeader className="bg-slate-50">
+                    <TableRow>
+                        <TableHead>Họ và tên</TableHead>
+                        <TableHead>CCCD</TableHead>
+                        <TableHead>Quan hệ với chủ hộ</TableHead>
+                        <TableHead className="text-right">Thao tác</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {members.map((member) => (
+                        <TableRow key={member.id}>
+                            <TableCell className="font-medium">{member.hoTen}</TableCell>
+                            <TableCell>{member.cccd || "--"}</TableCell>
+                            <TableCell>
+                                {/* Highlight Chủ hộ */}
+                                {member.quanHe === "Chủ hộ" ? (
+                                    <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-200">
+                                        <ShieldCheck className="w-3 h-3 mr-1" /> Chủ hộ
+                                    </Badge>
+                                ) : (
+                                    <span className="text-slate-600">{member.quanHe}</span>
+                                )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem>
+                                            Sửa quan hệ
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem className="text-red-600">
+                                            <UserMinus className="mr-2 h-4 w-4" /> Chuyển đi / Tách khẩu
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
     );
 }
