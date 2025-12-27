@@ -7,7 +7,7 @@ from ..models.khoan_thu import KhoanThu
 from ..models.nhan_khau import NhanKhau
 from ..models.tam_tru_tam_vang import TamTruTamVang
 
-
+# ---- THỐNG KÊ THU PHÍ ----
 def get_doanh_thu_thang_hien_tai():
     today = date.today()
     total = (
@@ -45,10 +45,6 @@ def get_so_can_ho_chua_dong_phi():
     return dem
 
 
-def get_tong_cu_dan():
-    return NhanKhau.query.count()
-
-
 def get_doanh_thu_6_thang_gan_nhat():
     results = []
     today = date.today()
@@ -71,17 +67,78 @@ def get_doanh_thu_6_thang_gan_nhat():
         })
     return results
 
+# ---- THỐNG KÊ DÂN CƯ ----
+def get_tong_cu_dan():
+    return NhanKhau.query.count()
 
+# 1. Thống kê tỷ lệ nam/nữ
+def get_thong_ke_gioi_tinh(): # Trả về format cho biểu đồ tròn (Pie Chart)
+    # Query group by giới tính và đếm
+    query = db.session.query(
+        NhanKhau.gioi_tinh,
+        func.count(NhanKhau.id)
+    ).group_by(NhanKhau.gioi_tinh).all()
+
+    results = []
+    mapping_mau = {
+        "Nam": "var(--color-nam)",  # Define màu ở frontend
+        "Nữ": "var(--color-nu)",
+        "Khác": "var(--color-khac)"
+    }
+
+    for gioi_tinh, so_luong in query:
+        # Xử lý trường hợp gioi_tinh là None hoặc chuỗi rỗng
+        label = gioi_tinh if gioi_tinh else "Không xác định"
+        results.append({
+            "name": label,
+            "value": so_luong,
+            "fill": mapping_mau.get(label, "#8884d8")  # Màu mặc định nếu không khớp
+        })
+
+    return results
+
+# 2. Thống kê theo độ tuổi
+def get_thong_ke_do_tuoi(): # Trả về format cho biểu đồ cột (Bar Chart)
+    today = date.today()
+    all_dates = db.session.query(NhanKhau.ngay_sinh).filter(NhanKhau.ngay_sinh.isnot(None)).all()
+    stats = {
+        "Trẻ em (0-17)": 0,
+        "Lao động (18-60)": 0,
+        "Người cao tuổi (>60)": 0
+    }
+
+    for row in all_dates:
+        dob = row.ngay_sinh
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+
+        if age < 18:
+            stats["Trẻ em (0-17)"] += 1
+        elif age <= 60:
+            stats["Lao động (18-60)"] += 1
+        else:
+            stats["Người cao tuổi (>60)"] += 1
+
+
+    return [
+        {"name": "Dưới 18 tuổi", "value": stats["Trẻ em (0-17)"], "fill": "#0088FE"},
+        {"name": "18 - 60 tuổi", "value": stats["Lao động (18-60)"], "fill": "#00C49F"},
+        {"name": "Trên 60 tuổi", "value": stats["Người cao tuổi (>60)"], "fill": "#FFBB28"},
+    ]
+
+
+# 3. Thống kê cơ cấu dân cư (Tạm trú/Tạm vắng/Thường trú)
 def get_co_cau_dan_cu():
+    # Tổng = Thường trú (đang ở) + Tạm trú (người nơi khác đến) + Tạm vắng (người ở đây đi nơi khác)
+
     tam_tru = TamTruTamVang.query.filter_by(trang_thai="Tạm trú").count()
     tam_vang = TamTruTamVang.query.filter_by(trang_thai="Tạm vắng").count()
     tong_nhan_khau = NhanKhau.query.count()
 
-    # Những người không trong danh sách tạm trú/tạm vắng được coi là thường trú
+    # Tính thường trú thực tế
     thuong_tru = max(0, tong_nhan_khau - (tam_tru + tam_vang))
 
     return [
-        {"name": "Thường trú", "value": thuong_tru, "fill": "var(--color-thuong-tru)"},
-        {"name": "Tạm trú", "value": tam_tru, "fill": "var(--color-tam-tru)"},
-        {"name": "Tạm vắng", "value": tam_vang, "fill": "var(--color-tam-vang)"},
+        {"name": "Thường trú", "value": thuong_tru, "fill": "#0088FE"},
+        {"name": "Tạm trú", "value": tam_tru, "fill": "#00C49F"},
+        {"name": "Tạm vắng", "value": tam_vang, "fill": "#FFBB28"},
     ]
