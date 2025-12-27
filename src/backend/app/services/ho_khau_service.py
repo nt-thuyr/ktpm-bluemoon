@@ -3,6 +3,7 @@ from ..models.ho_khau import HoKhau
 from ..models.nhan_khau import NhanKhau
 from ..models.lich_su_ho_khau import LichSuHoKhau
 from ..schemas.ho_khau_schema import HoKhauSchema
+from ..schemas.lich_su_schema import LichSuHoKhauSchema
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
@@ -10,7 +11,7 @@ from datetime import datetime
 # Khởi tạo Schema
 hk_schema = HoKhauSchema()
 list_hk_schema = HoKhauSchema(many=True)
-
+list_lich_su_schema = LichSuHoKhauSchema(many=True)
 
 def get_all_hokhau():
     rows = HoKhau.query.all()
@@ -165,3 +166,21 @@ def delete_hokhau(id):
     db.session.delete(hk)
     db.session.commit()
     return True
+
+def get_lich_su_ho_khau(ho_khau_id):
+    """
+    Lấy danh sách lịch sử thay đổi của một hộ khẩu cụ thể
+    """
+    # 1. Kiểm tra hộ khẩu có tồn tại không
+    hk = HoKhau.query.get(ho_khau_id)
+    if not hk:
+        return None
+
+    # 2. Query bảng lịch sử, lọc theo ho_khau_id, sắp xếp mới nhất lên đầu
+    rows = LichSuHoKhau.query \
+        .filter_by(ho_khau_id=ho_khau_id) \
+        .order_by(LichSuHoKhau.thoi_gian.desc()) \
+        .all()
+
+    # 3. Dump data ra JSON
+    return list_lich_su_schema.dump(rows)

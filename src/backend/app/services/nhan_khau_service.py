@@ -1,6 +1,7 @@
 from ..extensions import db
 from ..models.nhan_khau import NhanKhau
 from ..models.ho_khau import HoKhau
+from ..models.lich_su_ho_khau import LichSuHoKhau  # <--- Import model Lịch Sử
 from ..schemas.nhan_khau_schema import NhanKhauSchema
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_
@@ -26,7 +27,6 @@ def search_nhankhau_global(keyword):
 
     search_pattern = f"%{keyword}%"
 
-    # Join với HoKhau để tìm người theo địa chỉ phòng
     query = db.session.query(NhanKhau).outerjoin(
         HoKhau, NhanKhau.ho_khau_id == HoKhau.so_ho_khau
     )
@@ -52,12 +52,25 @@ def create_nhankhau(data):
 
         nk = NhanKhau(**clean_data)
         db.session.add(nk)
+        db.session.flush()  # Để lấy ID của nk mới tạo
+
+        # Nếu nhân khẩu mới có Hộ khẩu -> Ghi lịch sử "Chuyển đến" (1)
+        if nk.ho_khau_id:
+            ls = LichSuHoKhau(
+                nhan_khau_id=nk.id,
+                ho_khau_id=nk.ho_khau_id,
+                loai_thay_doi=1,
+                thoi_gian=datetime.now().date()
+            )
+            db.session.add(ls)
+
         db.session.commit()
         return nk_schema.dump(nk)
     except IntegrityError:
         db.session.rollback()
         return None
-    except Exception:  # Bắt lỗi validate schema nếu cần
+    except Exception:
+        db.session.rollback()
         return None
 
 
@@ -65,8 +78,9 @@ def update_nhankhau(id, data):
     nk = NhanKhau.query.get(id)
     if not nk: return None
 
-    # partial=True để update từng phần
-    # Schema sẽ lọc các field rác và convert date string -> date object
+    # Lưu lại ho_khau_id cũ để so sánh
+    old_ho_khau_id = nk.ho_khau_id
+
     clean_data = nk_schema.load(data, partial=True)
 
     has_change = False
@@ -77,10 +91,37 @@ def update_nhankhau(id, data):
 
     if has_change:
         try:
+            # Kiểm tra sự thay đổi Hộ khẩu
+            new_ho_khau_id = clean_data.get("ho_khau_id", old_ho_khau_id)
+
+            # Nếu Hộ khẩu thay đổi (Khác nhau và không phải giữ nguyên None)
+            if old_ho_khau_id != new_ho_khau_id:
+
+                # 1. Nếu trước đó có hộ khẩu -> Ghi lịch sử "Chuyển đi" (2) khỏi hộ cũ
+                if old_ho_khau_id:
+                    ls_out = LichSuHoKhau(
+                        nhan_khau_id=nk.id,
+                        ho_khau_id=old_ho_khau_id,
+                        loai_thay_doi=2,  # Chuyển đi
+                        thoi_gian=datetime.now().date()
+                    )
+                    db.session.add(ls_out)
+
+                # 2. Nếu bây giờ có hộ khẩu mới -> Ghi lịch sử "Chuyển đến" (1) vào hộ mới
+                if new_ho_khau_id:
+                    ls_in = LichSuHoKhau(
+                        nhan_khau_id=nk.id,
+                        ho_khau_id=new_ho_khau_id,
+                        loai_thay_doi=1,  # Chuyển đến
+                        thoi_gian=datetime.now().date()
+                    )
+                    db.session.add(ls_in)
+
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
             return "conflict"
+
     return nk_schema.dump(nk)
 
 
@@ -89,6 +130,20 @@ def delete_nhankhau(id):
     if nk:
         if nk.quan_he_voi_chu_ho == "Chủ hộ":
             return "is_chu_ho"
+
+        # Nếu người bị xóa đang thuộc 1 hộ khẩu -> Ghi lịch sử "Chuyển đi/Xóa" (2)
+        if nk.ho_khau_id:
+            try:
+                ls = LichSuHoKhau(
+                    nhan_khau_id=nk.id,
+                    ho_khau_id=nk.ho_khau_id,
+                    loai_thay_doi=2,
+                    thoi_gian=datetime.now().date()
+                )
+                db.session.add(ls)
+                db.session.flush()
+            except Exception:
+                pass
 
         db.session.delete(nk)
         db.session.commit()
