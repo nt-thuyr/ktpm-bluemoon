@@ -18,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useResidents } from "@/lib/hooks/use-residents"
 import { absenceRegistrationsMock } from "@/lib/mocks/absence.mock"
 import { Resident } from "@/lib/types/models/resident"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
@@ -26,6 +25,14 @@ import Link from "next/link"
 import { useState } from "react"
 import { DeleteResidentDialog } from "./DeleteResidentDialog"
 import { EditResidentDialog } from "./EditResidentDialog"
+
+
+interface ResidentsTableProps {
+  data: Resident[];
+  isLoading: boolean;
+  onUpdate: (id: string, data: Partial<Resident>) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}
 
 // --- Helper Functions ---
 const getResidenceStatus = (residentId: number) => {
@@ -54,17 +61,10 @@ const formatDate = (date: string | Date | null | undefined) => {
   const d = new Date(date);
   return d.toLocaleDateString('vi-VN'); // Trả về dd/mm/yyyy
 }
-interface ResidentsTableProps {
-  residents: Resident[];
-  isLoading: boolean;
-}
 
-export function ResidentsTable({ residents, isLoading }: ResidentsTableProps) {
-  // Lấy dữ liệu và hàm từ Hook
-  const {
-    updateResident,
-    deleteResident
-  } = useResidents();
+
+export function ResidentsTable({ data, isLoading, onUpdate, onDelete }: ResidentsTableProps) {
+
 
   // State cho Modal
   const [editingResident, setEditingResident] = useState<Resident | null>(null);
@@ -83,7 +83,8 @@ export function ResidentsTable({ residents, isLoading }: ResidentsTableProps) {
   // lưu Edit gọi API
   const handleSaveChanges = async (updatedData: Resident) => {
     if (!updatedData.id) return;
-    await updateResident.mutateAsync(updatedData.id, updatedData);
+    const { id, ...payload } = updatedData;
+    await onUpdate(id, payload);
     setIsEditOpen(false);
     setEditingResident(null);
   };
@@ -95,7 +96,7 @@ export function ResidentsTable({ residents, isLoading }: ResidentsTableProps) {
   // Xử lý xóa gọi API
   const handleConfirmDelete = async () => {
     if (deletingResident && deletingResident.id) {
-      await deleteResident.mutateAsync(deletingResident.id);
+      await onDelete(deletingResident.id);
       setIsDeleteOpen(false);
       setDeletingResident(null);
     }
@@ -122,14 +123,14 @@ export function ResidentsTable({ residents, isLoading }: ResidentsTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {residents.length === 0 ? (
+            {data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                   Chưa có dữ liệu cư dân
                 </TableCell>
               </TableRow>
             ) : (
-              residents.map((item, index) => (
+              data.map((item, index) => (
                 <TableRow key={item.id} className="hover:bg-slate-50/60 whitespace-nowrap">
                   <TableCell className="text-muted-foreground text-xs">{index + 1}</TableCell>
 
