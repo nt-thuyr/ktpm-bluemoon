@@ -55,7 +55,7 @@ interface CreateFeeModalProps {
 export function CreateFeeDialog({ onAddSuccess }: CreateFeeModalProps) {
     const [open, setOpen] = useState(false); // Quản lý đóng mở Modal
     const [isSubmitting, setIsSubmitting] = useState(false); // Quản lý trạng thái loading button
-    setIsSubmitting(true);
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -90,7 +90,6 @@ export function CreateFeeDialog({ onAddSuccess }: CreateFeeModalProps) {
             setOpen(false); // Đóng modal
             form.reset();   // Reset form về trắng
         }
-
         setIsSubmitting(false);
     }
 

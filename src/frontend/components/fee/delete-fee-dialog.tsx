@@ -30,7 +30,7 @@ export function DeleteFeeDialog({
     const [isDeleting, setIsDeleting] = useState(false)
 
     const handleDelete = async () => {
-        if (!fee) return
+        if (!fee) return null
 
         try {
             setIsDeleting(true)

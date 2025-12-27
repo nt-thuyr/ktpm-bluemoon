@@ -1,12 +1,12 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -19,10 +19,11 @@ import {
 } from "@/components/ui/table"
 import { UpdateFeeRequest } from "@/lib/services/fee"
 import { Fee } from "@/lib/types/models/fee"
-import { Edit, MoreHorizontal, Trash2 } from "lucide-react"
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useState } from "react"
-import { EditFeeDialog } from "../fee/edit-fee-dialog"
+import { Button } from "../ui/button"
 import { DeleteFeeDialog } from "./delete-fee-dialog"
+import { EditFeeDialog } from "./edit-fee-dialog"
 
 interface FeesTableProps {
     data: Fee[];
@@ -113,19 +114,21 @@ export function FeesTable({ data, isLoading, onDelete, onUpdate }: FeesTableProp
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" className="h-8 w-8 p-0">
+                                            <span className="sr-only">Open menu</span>
                                             <MoreHorizontal className="h-4 w-4" />
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
+                                    <DropdownMenuContent align="end" className="w-[160px]">
                                         <DropdownMenuLabel>Hành động</DropdownMenuLabel>
                                         <DropdownMenuItem className="cursor-pointer"
-                                            onClick={() => handleEditClick(fee)} >
-                                            <Edit className="mr-2 h-4 w-4 text-blue-600"
-                                            /> Sửa
+                                            onClick={() => handleEditClick(fee)}>
+                                            <Pencil className="mr-2 h-4 w-4 text-blue-600" /> Chỉnh sửa
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleDeleteClick(fee)}
-                                            className="cursor-pointer text-red-600">
-                                            <Trash2 className="mr-2 h-4 w-4" /> Xóa
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                                            onClick={() => handleDeleteClick(fee)}>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Xóa
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
