@@ -18,6 +18,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/lib/hooks/use-auth";
 import { Home } from "lucide-react";
 
 // Menu items
@@ -30,6 +31,10 @@ const items = [
 ]
 
 export function QuanLySidebar() {
+    const { logout } = useAuth();
+    const handleLogout = () => {
+        logout();
+    }
     return (
         <Sidebar
             className="bg-primary-gradient text-white border-none w-64 min-h-screen"
@@ -66,7 +71,7 @@ export function QuanLySidebar() {
             </SidebarContent>
 
             <SidebarFooter className="p-4 mt-auto border-t border-white/10">
-                <SidebarMenuButton className="w-full justify-start text-white/80 hover:bg-white/10 hover:text-white">
+                <SidebarMenuButton onClick={handleLogout} className="w-full justify-start text-white/80 hover:bg-white/10 hover:text-white">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Đăng xuất</span>
                 </SidebarMenuButton>

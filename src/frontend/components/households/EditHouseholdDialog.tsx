@@ -31,7 +31,7 @@ const formSchema = z.object({
     quan: z.string().min(1, "Quận không được để trống"),
     dienTich: z.coerce.number().min(0, "Diện tích phải lớn hơn 0"), // coerce để ép kiểu string input -> number
     chuHoId: z.coerce.number().optional(), // Có thể nhập ID chủ hộ mới
-    // NgayLap thường không cho sửa, hoặc sửa thì dùng DatePicker (tạm thời bỏ qua hoặc để readonly)
+
 });
 
 interface EditHouseholdDialogProps {
@@ -68,7 +68,7 @@ export function EditHouseholdDialog({
                 duong: APARTMENT_INFO.DUONG,
                 phuong: APARTMENT_INFO.PHUONG,
                 quan: APARTMENT_INFO.QUAN,
-                dienTich: household.dienTich || 0,
+                dienTich: household.dienTich,
                 chuHoId: household.chuHoId || undefined,
             });
         }

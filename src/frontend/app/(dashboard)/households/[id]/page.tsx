@@ -1,14 +1,15 @@
 "use client";
 
 import { HouseholdMembersTable } from "@/components/households/HouseholdDetailCard";
+import { SplitHouseholdDialog } from "@/components/households/SplitHouseholdDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { householdApi } from "@/lib/services/households"; // Import service
 import { Household } from "@/lib/types/models/household";
-import { ArrowLeft, Split, UserPlus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function HouseholdDetailPage() {
     const params = useParams();
@@ -18,39 +19,41 @@ export default function HouseholdDetailPage() {
     const [household, setHousehold] = useState<Household | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const loadData = useCallback(async () => {
         if (!id) return;
-        const loadData = async () => {
-            try {
-                const data = await householdApi.getHouseholdById(id);
-                setHousehold(data);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadData();
+        setLoading(true);
+        try {
+            const data = await householdApi.getHouseholdById(id);
+            setHousehold(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
     }, [id]);
 
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
     if (loading) return <div>Đang tải thông tin hộ khẩu...</div>;
     if (!household) return <div>Không tìm thấy hộ khẩu này.</div>;
 
     return (
         <div className="space-y-6">
-            {/* 1. Header & Nút Back */}
             <div className="flex items-center justify-between">
                 <Button variant="ghost" onClick={() => router.back()} className="gap-2">
                     <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
                 </Button>
                 <div className="space-x-2">
-                    {/* Các nút chức năng nâng cao */}
-                    <Button variant="outline" className="gap-2">
-                        <Split className="h-4 w-4" /> Tách hộ
-                    </Button>
-                    <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
-                        <UserPlus className="h-4 w-4" /> Thêm thành viên
-                    </Button>
+
+                    <SplitHouseholdDialog
+                        members={household.thanhVien || []}
+                        onSuccess={() => {
+                            // Gọi hàm load lại dữ liệu trang này
+                            loadData();
+                            // Hoặc redirect về trang danh sách nếu hộ cũ bị xóa (tùy logic backend)
+                        }}
+                    />
                 </div>
             </div>
 
@@ -66,7 +69,7 @@ export default function HouseholdDetailPage() {
                     </div>
                     <div>
                         <p className="text-sm font-medium text-slate-500">Địa chỉ</p>
-                        <p className="text-base text-slate-800">{household.diaChi}</p>
+                        <p className="text-base text-slate-800">Căn hộ {household.soNha}</p>
                     </div>
                     <div>
                         <p className="text-sm font-medium text-slate-500">Diện tích</p>
@@ -83,13 +86,11 @@ export default function HouseholdDetailPage() {
 
             <Separator />
 
-            {/* 3. Danh sách thành viên (Reuse UI Table nhưng custom cột) */}
+            {/* Danh sách thành viên (Reuse UI Table nhưng custom cột) */}
             <div>
                 <h3 className="mb-4 text-lg font-semibold text-slate-800">
                     Danh sách thành viên ({household.thanhVien.length})
                 </h3>
-
-                {/* Truyền thẳng mảng thành viên vào đây */}
                 <HouseholdMembersTable members={household.thanhVien} />
             </div>
         </div>

@@ -135,7 +135,6 @@ export function PaymentCreateModal({
                             <ResidentSelect
                                 value={formData.nguoiNop}
                                 onChange={handleSelectPayer}
-                                variant="outline"
                             />
                         </div>
                     </div>

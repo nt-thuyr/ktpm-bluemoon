@@ -16,7 +16,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { HouseholdMember } from "@/lib/types/models/household"; // Nhớ import đúng type
+import { HouseholdMember } from "@/lib/types/models/household";
 import { MoreHorizontal, ShieldCheck, UserMinus } from "lucide-react";
 
 interface Props {

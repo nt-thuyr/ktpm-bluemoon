@@ -19,12 +19,12 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Household } from "@/lib/types/models/household";
-import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Eye, History, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { DeleteHouseholdDialog } from "./DeleteHouseholdDialog";
 import { EditHouseholdDialog } from "./EditHouseholdDialog";
-
+import { HouseholdHistoryDialog } from "./HouseholdHistory";
 
 interface HouseholdsTableProps {
     data: Household[];
@@ -40,6 +40,8 @@ export function HouseholdsTable({ data, isLoading, onDelete, onUpdate }: Househo
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [deletingHousehold, setDeletingHousehold] = useState<Household | null>(null);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [historyId, setHistoryId] = useState<string | null>(null);
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     //Handlers
     const handleEditClick = (household: Household) => {
         setEditingHousehold(household);
@@ -69,6 +71,11 @@ export function HouseholdsTable({ data, isLoading, onDelete, onUpdate }: Househo
             setIsDeleteOpen(false);
             setDeletingHousehold(null);
         }
+    };
+
+    const handleViewHistory = (household: Household) => {
+        setHistoryId(household.id.toString());
+        setIsHistoryOpen(true);
     };
 
     if (isLoading) {
@@ -147,6 +154,12 @@ export function HouseholdsTable({ data, isLoading, onDelete, onUpdate }: Househo
                                         >
                                             <Pencil className="mr-2 h-4 w-4" /> Chỉnh sửa
                                         </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            className="cursor-pointer"
+                                            onClick={() => handleViewHistory(item)}
+                                        >
+                                            <History className="mr-2 h-4 w-4" /> Lịch sử thay đổi
+                                        </DropdownMenuItem>
 
                                         <DropdownMenuSeparator />
 
@@ -178,6 +191,13 @@ export function HouseholdsTable({ data, isLoading, onDelete, onUpdate }: Househo
                 householdId={deletingHousehold?.id.toString() || ""}
                 onConfirm={handleDeleteConfirm}
             />
+            {historyId && (
+                <HouseholdHistoryDialog
+                    householdId={historyId}
+                    open={isHistoryOpen}
+                    onOpenChange={setIsHistoryOpen}
+                />
+            )}
         </div>
     );
 }
