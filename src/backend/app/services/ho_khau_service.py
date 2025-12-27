@@ -2,60 +2,27 @@ from ..extensions import db
 from ..models.ho_khau import HoKhau
 from ..models.nhan_khau import NhanKhau
 from ..models.lich_su_ho_khau import LichSuHoKhau
+from ..schemas.ho_khau_schema import HoKhauSchema
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
-
-def parse_date(date_str):
-    if not date_str: return None
-    try:
-        return datetime.strptime(date_str, '%Y-%m-%d').date()
-    except ValueError:
-        return None
-
-
-def serialize_hokhau(hk: HoKhau):
-    ten_chu_ho = hk.chu_ho.ho_ten if hk.chu_ho else None
-    ds_thanh_vien = []
-    if hk.thanh_vien_ho:
-        for tv in hk.thanh_vien_ho:
-            ds_thanh_vien.append({
-                "id": tv.id,
-                "HoTen": tv.ho_ten,
-                "CCCD": tv.cccd,
-                "QuanHe": tv.quan_he_voi_chu_ho
-            })
-
-    return {
-        "SoHoKhau": hk.so_ho_khau,
-        "SoNha": hk.so_nha,
-        "Duong": hk.duong,
-        "Phuong": hk.phuong,
-        "Quan": hk.quan,
-        "NgayLamHoKhau": str(hk.ngay_lam_ho_khau) if hk.ngay_lam_ho_khau else None,
-        "ChuHoID": hk.chu_ho_id,
-        "TenChuHo": ten_chu_ho,
-        "ThanhVien": ds_thanh_vien
-    }
+# Khởi tạo Schema
+hk_schema = HoKhauSchema()
+list_hk_schema = HoKhauSchema(many=True)
 
 
 def get_all_hokhau():
     rows = HoKhau.query.all()
-    return [serialize_hokhau(r) for r in rows]
+    return list_hk_schema.dump(rows)
 
 
 def get_hokhau_by_id(id):
     r = HoKhau.query.get(id)
-    return serialize_hokhau(r) if r else None
+    return hk_schema.dump(r) if r else None
 
 
 def search_hokhau_global(keyword):
-    """
-    Tìm kiếm trên nhiều cột cùng lúc với 1 từ khóa duy nhất (Global Search)
-    Input: "1206" -> Tìm thấy hộ ở phòng 1206
-    Input: "Tuấn" -> Tìm thấy hộ có chủ hộ tên Tuấn
-    """
     if not keyword:
         return get_all_hokhau()
 
@@ -69,30 +36,29 @@ def search_hokhau_global(keyword):
     # 2. Sử dụng OR để quét trên nhiều trường
     query = query.filter(
         or_(
-            HoKhau.so_nha.ilike(search_pattern),       # Tìm theo số phòng
-            NhanKhau.ho_ten.ilike(search_pattern),     # Tìm theo tên chủ hộ
-            NhanKhau.cccd.ilike(search_pattern)        # Tìm theo CCCD chủ hộ
+            HoKhau.so_nha.ilike(search_pattern),  # Tìm theo số phòng
+            NhanKhau.ho_ten.ilike(search_pattern),  # Tìm theo tên chủ hộ
+            NhanKhau.cccd.ilike(search_pattern)  # Tìm theo CCCD chủ hộ
         )
     )
 
     rows = query.all()
-    return [serialize_hokhau(r) for r in rows]
+    return list_hk_schema.dump(rows)
 
 
 def create_hokhau(data):
     try:
-        chu_ho_id = data.get("ChuHoID")
+        clean_data = hk_schema.load(data)
+
+        chu_ho_id = clean_data.get("chu_ho_id")
         chu_ho = NhanKhau.query.get(chu_ho_id)
         if not chu_ho: return "chu_ho_not_found"
 
-        hk = HoKhau(
-            so_nha=data.get("SoNha"),
-            duong=data.get("Duong"),
-            phuong=data.get("Phuong"),
-            quan=data.get("Quan"),
-            ngay_lam_ho_khau=parse_date(data.get("NgayLamHoKhau")) or datetime.now().date(),
-            chu_ho_id=chu_ho_id
-        )
+        # Nếu không gửi ngày làm hộ khẩu -> lấy ngày hiện tại
+        if not clean_data.get("ngay_lam_ho_khau"):
+            clean_data["ngay_lam_ho_khau"] = datetime.now().date()
+
+        hk = HoKhau(**clean_data)
         db.session.add(hk)
         db.session.flush()
 
@@ -103,12 +69,12 @@ def create_hokhau(data):
         ls = LichSuHoKhau(
             nhan_khau_id=chu_ho_id,
             ho_khau_id=hk.so_ho_khau,
-            loai_thay_doi=1,    # 1: thêm mới/chuyển đến
+            loai_thay_doi=1,  # 1: thêm mới/chuyển đến
             thoi_gian=datetime.now().date()
         )
         db.session.add(ls)
         db.session.commit()
-        return serialize_hokhau(hk)
+        return hk_schema.dump(hk)
     except IntegrityError:
         db.session.rollback()
         return None
@@ -118,8 +84,10 @@ def update_hokhau(id, data):
     hk = HoKhau.query.get(id)
     if not hk: return None
 
+    clean_data = hk_schema.load(data, partial=True)
+
     # Xử lý thay đổi Chủ Hộ
-    new_chu_ho_id = data.get("ChuHoID")
+    new_chu_ho_id = clean_data.get("chu_ho_id")
     if new_chu_ho_id and new_chu_ho_id != hk.chu_ho_id:
         old_chu_ho = NhanKhau.query.get(hk.chu_ho_id)
         new_chu_ho = NhanKhau.query.get(new_chu_ho_id)
@@ -134,16 +102,9 @@ def update_hokhau(id, data):
             new_chu_ho.quan_he_voi_chu_ho = "Chủ hộ"
             hk.chu_ho_id = new_chu_ho.id
 
-            # TODO: Có thể thêm logic ghi Lịch Sử ở đây nếu cần thiết
-
-    # Update các field thông thường
-    allowed_fields = ["SoNha", "Duong", "Phuong", "Quan"]
-    for k in allowed_fields:
-        if k in data:
-            setattr(hk, k.lower().replace("so", "so_"), data[k])
-
-    if "NgayLamHoKhau" in data:
-        hk.ngay_lam_ho_khau = parse_date(data["NgayLamHoKhau"])
+    for attr, value in clean_data.items():
+        if attr != "chu_ho_id" and getattr(hk, attr) != value:
+            setattr(hk, attr, value)
 
     try:
         db.session.commit()
@@ -151,7 +112,7 @@ def update_hokhau(id, data):
         db.session.rollback()
         return "conflict"
 
-    return serialize_hokhau(hk)
+    return hk_schema.dump(hk)
 
 
 def tach_hokhau(data):
@@ -186,7 +147,7 @@ def tach_hokhau(data):
                 db.session.add(ls_vao)
 
         db.session.commit()
-        return serialize_hokhau(hk_moi)
+        return hk_schema.dump(hk_moi)
     except Exception as e:
         db.session.rollback()
         return None
@@ -199,7 +160,7 @@ def delete_hokhau(id):
     # Check còn thành viên không?
     count_members = NhanKhau.query.filter_by(ho_khau_id=id).count()
     if count_members > 0:
-        return "has_members"  # Frontend cần xử lý lỗi này (báo phải tách hộ hết trước)
+        return "has_members"
 
     db.session.delete(hk)
     db.session.commit()
