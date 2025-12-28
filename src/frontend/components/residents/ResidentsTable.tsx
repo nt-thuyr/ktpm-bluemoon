@@ -1,6 +1,5 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -18,55 +17,42 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { absenceRegistrationsMock } from "@/lib/mocks/absence.mock"
+
 import { Resident } from "@/lib/types/models/resident"
+// Giả sử bạn đã có file constants này, nếu chưa thì tự define object map nhé
+import { GENDER_MAP, RELATION_MAP } from "@/lib/utils/contant"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { DeleteResidentDialog } from "./DeleteResidentDialog"
 import { EditResidentDialog } from "./EditResidentDialog"
 
-
 interface ResidentsTableProps {
   data: Resident[];
   isLoading: boolean;
-  onUpdate: (id: string, data: Partial<Resident>) => Promise<void>;
+  // SỬA: Return Promise<boolean> để khớp với Hook
+  onUpdate: (id: string, data: Partial<Resident>) => Promise<boolean>;
   onDelete: (id: string) => Promise<void>;
+  householdOptions: { value: string; label: string }[];
 }
 
-// --- Helper Functions ---
-const getResidenceStatus = (residentId: number) => {
-  // [TODO] Sau này nên lấy status từ API resident luôn
-  const record = absenceRegistrationsMock.find(
-    (r) => r.residentId === String(residentId)
-  );
-  if (!record) return "ThuongTru";
-  return record.loaiHinh;
-};
-
-const getStatusBadge = (status: "ThuongTru" | "TamTru" | "TamVang") => {
-  switch (status) {
-    case "ThuongTru":
-      return <Badge className="bg-green-100 text-green-700 border-green-200">Thường trú</Badge>;
-    case "TamTru":
-      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Tạm trú</Badge>;
-    case "TamVang":
-      return <Badge className="text-slate-500 border-slate-300 bg-slate-50">Tạm vắng</Badge>;
-  }
-};
-
-//Format ngày tháng (Hỗ trợ cả String ISO lẫn Date Object)
+// Format ngày tháng
 const formatDate = (date: string | Date | null | undefined) => {
   if (!date) return "";
   const d = new Date(date);
-  return d.toLocaleDateString('vi-VN'); // Trả về dd/mm/yyyy
+  return d.toLocaleDateString('vi-VN');
 }
 
 
-export function ResidentsTable({ data, isLoading, onUpdate, onDelete }: ResidentsTableProps) {
+export function ResidentsTable({
+  data,
+  isLoading,
+  onUpdate,
+  onDelete,
+  householdOptions
+}: ResidentsTableProps) {
 
-
-  // State cho Modal
+  // State Modal
   const [editingResident, setEditingResident] = useState<Resident | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
@@ -80,32 +66,30 @@ export function ResidentsTable({ data, isLoading, onUpdate, onDelete }: Resident
     setIsEditOpen(true);
   };
 
-  // lưu Edit gọi API
-  const handleSaveChanges = async (updatedData: Resident) => {
-    if (!updatedData.id) return;
-    const { id, ...payload } = updatedData;
-    await onUpdate(id, payload);
-    setIsEditOpen(false);
-    setEditingResident(null);
+  const handleSaveChanges = async (id: string, updatedData: Partial<Resident>) => {
+    const success = await onUpdate(id, updatedData);
+    if (success) {
+      setIsEditOpen(false);
+      setEditingResident(null);
+    }
   };
 
   const handleDeleteClick = (resident: Resident) => {
     setDeletingResident(resident);
     setIsDeleteOpen(true);
   };
-  // Xử lý xóa gọi API
+
   const handleConfirmDelete = async () => {
     if (deletingResident && deletingResident.id) {
-      await onDelete(deletingResident.id);
+      await onDelete(deletingResident.id.toString());
       setIsDeleteOpen(false);
       setDeletingResident(null);
     }
   };
 
   if (isLoading) {
-    return <div className="p-4 text-center text-sm text-muted-foreground">Đang tải dữ liệu...</div>;
+    return <div className="p-8 text-center text-sm text-muted-foreground">Đang tải dữ liệu...</div>;
   }
-
 
   return (
     <div className="rounded-md border bg-white shadow-sm overflow-hidden">
@@ -113,13 +97,14 @@ export function ResidentsTable({ data, isLoading, onUpdate, onDelete }: Resident
         <Table>
           <TableHeader className="bg-slate-50">
             <TableRow>
-              <TableHead className="w-[50px]">#</TableHead>
-              <TableHead className="min-w-[200px]">Họ và Tên</TableHead>
-              <TableHead>Thông tin cá nhân</TableHead>
-              <TableHead>CCCD / CMND</TableHead>
+              <TableHead className="w-[50px] text-center">#</TableHead>
+              <TableHead className="min-w-[180px]">Họ và Tên</TableHead>
+              <TableHead className="min-w-[150px]">Thông tin cá nhân</TableHead>
+              <TableHead className="text-center">CCCD / CMND</TableHead>
               <TableHead>Nơi cư trú</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead className="text-right">Thao tác</TableHead>
+              {/* Mở lại cột trạng thái */}
+              <TableHead className="text-center">Trạng thái</TableHead>
+              <TableHead className="text-right pr-6">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -132,34 +117,32 @@ export function ResidentsTable({ data, isLoading, onUpdate, onDelete }: Resident
             ) : (
               data.map((item, index) => (
                 <TableRow key={item.id} className="hover:bg-slate-50/60 whitespace-nowrap">
-                  <TableCell className="text-muted-foreground text-xs">{index + 1}</TableCell>
+                  <TableCell className="text-muted-foreground text-xs text-center">{index + 1}</TableCell>
 
-                  {/* Cột Họ Tên*/}
-                  <TableCell className="w-[180px] py-3 pr-2">
-                    <div className="flex items-start gap-3">
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-slate-900 text-left">{item.hoTen}</span>
-                        <span className="text-xs text-muted-foreground text-left">{item.ngheNghiep}</span>
-                      </div>
+                  {/* Họ Tên */}
+                  <TableCell className="py-3">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-slate-900">{item.hoTen}</span>
+                      <span className="text-xs text-muted-foreground">{item.ngheNghiep || ""}</span>
                     </div>
                   </TableCell>
 
-                  <TableCell className="text-left w-[140px] py-3 pl-2"> {/* Căn giữa ô */}
-                    <div className="flex flex-col items-start justify-center"> {/* Xếp dọc + Căn giữa */}
+                  {/* Thông tin cá nhân */}
+                  <TableCell className="py-3">
+                    <div className="flex flex-col items-start">
                       <span className="font-medium text-slate-700">
                         {formatDate(item.ngaySinh)}
                       </span>
                       <span className="text-xs text-muted-foreground mt-0.5">
-                        {/* Dấu chấm ở giữa nhìn cho nguy hiểm */}
-                        {item.gioiTinh} &bull; {item.danToc}
+                        {GENDER_MAP[item.gioiTinh as keyof typeof GENDER_MAP] || item.gioiTinh} &bull; {item.danToc}
                       </span>
                     </div>
                   </TableCell>
 
-                  {/* Cột CCCD */}
+                  {/* CCCD */}
                   <TableCell className="text-center">
                     {item.cccd ? (
-                      <span className="font-mono text-sm text-slate-700 bg-slate-50 px-2 py-1 rounded border border-slate-100">
+                      <span className="font-mono text-xs text-slate-700 bg-slate-50 px-2 py-1 rounded border border-slate-100">
                         {item.cccd}
                       </span>
                     ) : (
@@ -167,38 +150,30 @@ export function ResidentsTable({ data, isLoading, onUpdate, onDelete }: Resident
                     )}
                   </TableCell>
 
-                  {/* Cột Hộ khẩu + Quan hệ */}
+                  {/* Nơi cư trú */}
                   <TableCell>
-                    <div className="flex flex-col items-start gap-1.5">
-                      {item.householdId ? (
+                    <div className="flex flex-col items-start gap-1">
+                      {item.hoKhauId ? (
                         <Link
-                          href={`/households/${item.householdId}`}
-                          className="text-primary font-medium hover:underline text-sm"
+                          href={`/households/${item.hoKhauId}`}
+                          className="text-blue-600 font-medium hover:underline text-sm"
                         >
-                          Mã hộ: {item.householdId}
+                          Mã hộ: {item.hoKhauId}
                         </Link>
                       ) : (
                         <span className="text-xs text-muted-foreground italic">Chưa có hộ</span>
                       )}
-
-                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium border ${
-                        // Logic đổi màu badge cho sinh động (Optional)
-                        item.quanHeVoiChuHo === 'Chủ hộ'
-                          ? 'bg-blue-50 text-blue-700 border-blue-100'
-                          : 'bg-slate-100 text-slate-600 border-slate-200'
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border w-fit ${item.quanHeVoiChuHo === 'Chủ hộ'
+                        ? 'bg-blue-50 text-blue-700 border-blue-100'
+                        : 'bg-slate-100 text-slate-600 border-slate-200'
                         }`}>
-                        {item.quanHeVoiChuHo || 'Chưa xác định'}
+                        {RELATION_MAP[item.quanHeVoiChuHo as keyof typeof RELATION_MAP] || item.quanHeVoiChuHo || 'Khác'}
                       </span>
                     </div>
                   </TableCell>
 
-                  {/* Cột Trạng thái */}
-                  <TableCell className="text-center">
-                    {getStatusBadge(getResidenceStatus(Number(item.id)))}
-                  </TableCell>
-
-                  {/* Cột Thao tác */}
-                  <TableCell className="text-right">
+                  {/* Thao tác */}
+                  <TableCell className="text-right pr-4">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
@@ -222,17 +197,21 @@ export function ResidentsTable({ data, isLoading, onUpdate, onDelete }: Resident
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              )
               ))
-            }
+            )}
           </TableBody>
         </Table>
+
+        {/* Modal Edit */}
         <EditResidentDialog
           open={isEditOpen}
           onOpenChange={setIsEditOpen}
           resident={editingResident}
           onSave={handleSaveChanges}
+          householdOptions={householdOptions}
         />
+
+        {/* Modal Delete */}
         <DeleteResidentDialog
           open={isDeleteOpen}
           onOpenChange={setIsDeleteOpen}

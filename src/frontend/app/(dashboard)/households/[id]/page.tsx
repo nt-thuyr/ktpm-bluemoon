@@ -71,10 +71,10 @@ export default function HouseholdDetailPage() {
                         <p className="text-sm font-medium text-slate-500">Địa chỉ</p>
                         <p className="text-base text-slate-800">Căn hộ {household.soNha}</p>
                     </div>
-                    <div>
+                    {/* <div>
                         <p className="text-sm font-medium text-slate-500">Diện tích</p>
                         <p className="text-base text-slate-800">{household.dienTich} m2</p>
-                    </div>
+                    </div> */}
                     <div>
                         <p className="text-sm font-medium text-slate-500">Ngày lập</p>
                         <p className="text-base text-slate-800">

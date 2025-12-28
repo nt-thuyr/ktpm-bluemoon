@@ -33,7 +33,7 @@ const formSchema = z.object({
     duong: z.string().min(1, "Nhập tên đường"),
     phuong: z.string().min(1, "Nhập phường/xã"),
     quan: z.string().min(1, "Nhập quận/huyện"),
-    dienTich: z.coerce.number().min(0, "Diện tích không hợp lệ"),
+    // dienTich: z.coerce.number().min(0, "Diện tích không hợp lệ"),
 
     ngayLap: z.string(),
 });
@@ -49,7 +49,7 @@ export function CreateHouseholdDialog({ onAddSuccess }: CreateHouseholdDialogPro
         defaultValues: {
             chuHoId: 0,
             soNha: "",
-            dienTich: 0,
+            // dienTich: 0,
             ngayLap: new Date().toISOString().split('T')[0],
 
             duong: APARTMENT_INFO.DUONG,
@@ -66,7 +66,7 @@ export function CreateHouseholdDialog({ onAddSuccess }: CreateHouseholdDialogPro
             Duong: values.duong,
             Phuong: values.phuong,
             Quan: values.quan,
-            DienTich: values.dienTich,
+            // DienTich: values.dienTich,
             NgayLamHoKhau: values.ngayLap
         });
 
@@ -157,13 +157,13 @@ export function CreateHouseholdDialog({ onAddSuccess }: CreateHouseholdDialogPro
                                 )} />
 
                                 {/* Thêm Diện tích */}
-                                <FormField control={form.control} name="dienTich" render={({ field }) => (
+                                {/* <FormField control={form.control} name="dienTich" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Diện tích (m2)</FormLabel>
                                         <FormControl><Input type="number" className="bg-white" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
-                                )} />
+                                )} /> */}
                             </div>
                         </div>
 

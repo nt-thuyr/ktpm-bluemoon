@@ -32,27 +32,26 @@ import { Loader2, Plus, Save, User } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
+import { ComboboxSearch } from "../combo-search"
 
 const formSchema = z.object({
     hoTen: z.string().min(2, "Tên phải lớn hơn 2 ký tự"),
-    ngaySinh: z.string().min(1, "Vui lòng chọn ngày sinh"),
+    ngaySinh: z.string().optional(), // Cho phép rỗng (backend sẽ nhận null)
     gioiTinh: z.string().min(1, "Chọn giới tính"),
-    cccd: z.string().min(9, "CCCD phải từ 9-12 số").max(12),
-    sdt: z.string().optional(),
+    cccd: z.string().optional(), // Không bắt buộc
     ngheNghiep: z.string().optional(),
     danToc: z.string().optional(),
-
+    // Cư trú
     householdId: z.string().optional(),
-    quanHe: z.string().min(1, "Chọn quan hệ"),
-    trangThai: z.string().min(1, "Chọn trạng thái cư trú"),
+    quanHe: z.string().optional(),
 })
 
 interface CreateResidentDialogProps {
-    onCreate: (data: Resident) => Promise<void>;
+    onAddSuccess: (data: Partial<Resident>) => Promise<boolean>;
+    householdOptions?: { value: string; label: string }[];
 }
 
-export function CreateResidentDialog({ onCreate }: CreateResidentDialogProps) {
-    // State quản lý đóng mở Dialog
+export function CreateResidentDialog({ onAddSuccess, householdOptions = [] }: CreateResidentDialogProps) {
     const [open, setOpen] = useState(false);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -61,83 +60,91 @@ export function CreateResidentDialog({ onCreate }: CreateResidentDialogProps) {
             hoTen: "",
             cccd: "",
             gioiTinh: "Nam",
-            trangThai: "ThuongTru",
             householdId: "",
-            danToc: "",
+            danToc: "Kinh",
             quanHe: "ChuHo",
             ngaySinh: "",
             ngheNghiep: ""
         },
     })
 
-    // Xử lý Submit
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        const newResident: Resident = {
-            id: "0", // ID backend tự sinh (hoặc để undefined nếu type cho phép)
+        const newResident: Partial<Resident> = {
             hoTen: values.hoTen,
-            // Chuyển string YYYY-MM-DD -> Date object
-            ngaySinh: values.ngaySinh ? new Date(values.ngaySinh) : new Date(),
-            gioiTinh: values.gioiTinh as "Nam" | "Nu" | "Khac",
-            cccd: values.cccd,
-            ngheNghiep: values.ngheNghiep ?? "",
-            householdId: values.householdId?.toString() || null,
-            quanHeVoiChuHo: values.quanHe,
-            danToc: values.danToc ?? "Kinh",
+            // Nếu chuỗi rỗng thì gửi null
+            ngaySinh: values.ngaySinh || null,
+            gioiTinh: values.gioiTinh,
+            cccd: values.cccd || null,
+            ngheNghiep: values.ngheNghiep || null,
+            danToc: values.danToc || "Kinh",
+
+            hoKhauId: values.householdId ? parseInt(values.householdId) : null,
+            quanHeVoiChuHo: values.quanHe || null,
+
+            // Các trường mặc định khác
             tonGiao: "Không",
-            ngayCap: null,
-            noiCap: "",
             ghiChu: "",
-            ngayThemNhanKhau: new Date(),
-            // Trạng thái cư trú có thể cần mapping lại tùy backend
-            // Ví dụ backend cần enum: 'TamTru' | 'ThuongTru'
         }
 
         try {
-            await onCreate(newResident);
-            setOpen(false);
-            form.reset();
+            const success = await onAddSuccess(newResident);
+            if (success) {
+                setOpen(false);
+                form.reset();
+            }
         } catch (error) {
             console.error(error);
         }
     }
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="shadow-md">
+                <Button className="shadow-md bg-blue-600 hover:bg-blue-700">
                     <Plus className="mr-2 h-4 w-4" /> Thêm cư dân mới
                 </Button>
             </DialogTrigger>
 
-            {/* Form rộng hơn chút (max-w-2xl) vì nhiều trường */}
-            <DialogContent className="sm:max-w-2xl  bg-white text-slate-900 max-h-[calc(100vh-4rem)] overflow-y-auto">
+            <DialogContent className="sm:max-w-2xl bg-white text-slate-900 max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-bold text-primary">Tiếp nhận cư dân</DialogTitle>
+                    <DialogTitle className="text-xl font-bold text-blue-700 flex items-center gap-2">
+                        <Plus className="h-5 w-5" />
+                        Tiếp nhận cư dân
+                    </DialogTitle>
                     <DialogDescription className="text-slate-500">
                         Thêm nhân khẩu mới vào hệ thống quản lý.
                     </DialogDescription>
                 </DialogHeader>
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-2">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
                         {/* KHỐI 1: THÔNG TIN CÁ NHÂN */}
                         <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b pb-2 border-slate-200">
-                                Thông tin cá nhân
+                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest border-b pb-2">
+                                Thông tin cơ bản
                             </h4>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <FormField control={form.control} name="hoTen" render={({ field }) => (
-                                    <FormItem className="col-span-2 sm:col-span-1">
-                                        <FormLabel>Họ và tên</FormLabel>
+                                    <FormItem>
+                                        <FormLabel className="font-medium">Họ và tên <span className="text-red-500">*</span></FormLabel>
                                         <FormControl><Input placeholder="Nguyễn Văn A" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+
+                                <FormField control={form.control} name="cccd" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="font-medium">Số CCCD / CMND</FormLabel>
+                                        <FormControl><Input placeholder="00123456789" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
 
                                 <FormField control={form.control} name="ngaySinh" render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Ngày sinh</FormLabel>
+                                        <FormLabel className="font-medium">Ngày sinh</FormLabel>
                                         <FormControl><Input type="date" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -145,7 +152,7 @@ export function CreateResidentDialog({ onCreate }: CreateResidentDialogProps) {
 
                                 <FormField control={form.control} name="gioiTinh" render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Giới tính</FormLabel>
+                                        <FormLabel className="font-medium">Giới tính <span className="text-red-500">*</span></FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
@@ -162,52 +169,45 @@ export function CreateResidentDialog({ onCreate }: CreateResidentDialogProps) {
                                     </FormItem>
                                 )} />
 
-                                <FormField control={form.control} name="cccd" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Số CCCD / CMND</FormLabel>
-                                        <FormControl><Input placeholder="00123456789" {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
-
                                 <FormField control={form.control} name="ngheNghiep" render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Nghề nghiệp (Tùy chọn)</FormLabel>
+                                        <FormLabel className="font-medium">Nghề nghiệp</FormLabel>
                                         <FormControl><Input placeholder="Nhân viên văn phòng..." {...field} /></FormControl>
                                     </FormItem>
                                 )} />
                                 <FormField control={form.control} name="danToc" render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Dân tộc</FormLabel>
+                                        <FormLabel className="font-medium">Dân tộc</FormLabel>
                                         <FormControl><Input placeholder="Kinh" {...field} /></FormControl>
                                     </FormItem>
                                 )} />
                             </div>
                         </div>
 
-                        {/* KHỐI 2: THÔNG TIN CƯ TRÚ (Box màu xám) */}
-                        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-4 shadow-sm">
-                            <div className="flex items-center gap-2 text-primary font-bold text-sm uppercase">
+                        {/* KHỐI 2: THÔNG TIN CƯ TRÚ */}
+                        <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 space-y-4">
+                            <div className="flex items-center gap-2 text-blue-700 font-bold text-xs uppercase">
                                 <User className="h-4 w-4" />
                                 Thông tin cư trú
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                {/* Mã hộ khẩu - Sau này nâng cấp thành Search Select */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <FormField control={form.control} name="householdId" render={({ field }) => (
-                                    <FormItem className="col-span-2">
-                                        <FormLabel>Thuộc Hộ Khẩu (Mã Hộ)</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Nhập mã hộ (VD: HK001)..." className="bg-white" {...field} />
-                                        </FormControl>
+                                    <FormItem className="sm:col-span-2 flex flex-col">
+                                        <FormLabel className="font-medium">Thuộc Hộ Khẩu (Phòng)</FormLabel>
+                                        <ComboboxSearch
+                                            options={householdOptions}
+                                            value={field.value}
+                                            onSelect={field.onChange}
+                                            placeholder="Chọn hộ khẩu..."
+                                        />
                                         <FormMessage />
                                     </FormItem>
                                 )} />
 
-                                {/* Quan hệ */}
                                 <FormField control={form.control} name="quanHe" render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Quan hệ với chủ hộ</FormLabel>
+                                        <FormLabel className="font-medium">Quan hệ với chủ hộ</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl>
                                                 <SelectTrigger className="bg-white">
@@ -225,35 +225,12 @@ export function CreateResidentDialog({ onCreate }: CreateResidentDialogProps) {
                                         <FormMessage />
                                     </FormItem>
                                 )} />
-
-                                {/* Trạng thái */}
-                                <FormField control={form.control} name="trangThai" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Hình thức cư trú</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger className="bg-white">
-                                                    <SelectValue placeholder="Chọn trạng thái" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="ThuongTru">Thường trú</SelectItem>
-                                                <SelectItem value="TamTru">Tạm trú</SelectItem>
-                                                <SelectItem value="TamVang">Tạm vắng</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
                             </div>
                         </div>
 
                         <DialogFooter>
-                            {/* <Button type="submit" className="w-full sm:w-auto">
-                                <Save className="mr-2 h-4 w-4" /> Lưu thông tin
-                            </Button> */}
-                            <Button variant="outline" type="button" onClick={() => setOpen(false)}>Hủy</Button>
-                            <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
+                            <Button variant="ghost" type="button" onClick={() => setOpen(false)}>Hủy</Button>
+                            <Button type="submit" disabled={form.formState.isSubmitting} className="bg-blue-600 hover:bg-blue-700">
                                 {form.formState.isSubmitting ? (
                                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang lưu...</>
                                 ) : (
