@@ -5,7 +5,7 @@ from ..controllers.ho_khau_controller import (
     create_hokhau_controller,
     update_hokhau_controller,
     delete_hokhau_controller,
-    tach_hokhau_controller, get_lich_su_controller
+    get_lich_su_controller
 )
 from ..utils.decorators import role_required
 from ..utils.constants import ROLE_TO_TRUONG
@@ -39,15 +39,6 @@ def route_create():
     except Exception as e:
         # Bắt lỗi server bất ngờ
         return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
-
-# --- API TÁCH HỘ (Chỉ Tổ Trưởng) ---
-@ho_khau_bp.route("/tach-ho", methods=["POST"])
-@role_required(ROLE_TO_TRUONG)
-def route_tach_ho():
-    try:
-        return tach_hokhau_controller(request.get_json())
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 # --- API SỬA (Chỉ Tổ Trưởng) ---
 @ho_khau_bp.route("/<int:id>", methods=["PUT"])

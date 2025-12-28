@@ -116,44 +116,6 @@ def update_hokhau(id, data):
     return hk_schema.dump(hk)
 
 
-def tach_hokhau(data):
-    try:
-        chu_ho_moi_id = data.get("idChuHoMoi")
-        hk_moi = HoKhau(
-            so_nha=data.get("DiaChiMoi"),
-            duong=data.get("Duong"),
-            ngay_lam_ho_khau=datetime.now().date(),
-            chu_ho_id=chu_ho_moi_id
-        )
-        db.session.add(hk_moi)
-        db.session.flush()
-
-        ds_thanh_vien_ids = data.get("dsThanhVienSangHoMoi", [])
-        if chu_ho_moi_id not in ds_thanh_vien_ids:
-            ds_thanh_vien_ids.append(chu_ho_moi_id)
-
-        for nk_id in ds_thanh_vien_ids:
-            nk = NhanKhau.query.get(nk_id)
-            if nk:
-                if nk.ho_khau_id:
-                    ls_ra = LichSuHoKhau(nhan_khau_id=nk.id, ho_khau_id=nk.ho_khau_id, loai_thay_doi=2,
-                                         thoi_gian=datetime.now().date())
-                    db.session.add(ls_ra)
-
-                nk.ho_khau_id = hk_moi.so_ho_khau
-                nk.quan_he_voi_chu_ho = "Chủ hộ" if nk.id == chu_ho_moi_id else "Thành viên"
-
-                ls_vao = LichSuHoKhau(nhan_khau_id=nk.id, ho_khau_id=hk_moi.so_ho_khau, loai_thay_doi=1,
-                                      thoi_gian=datetime.now().date())
-                db.session.add(ls_vao)
-
-        db.session.commit()
-        return hk_schema.dump(hk_moi)
-    except Exception as e:
-        db.session.rollback()
-        return None
-
-
 def delete_hokhau(id):
     hk = HoKhau.query.get(id)
     if not hk: return False

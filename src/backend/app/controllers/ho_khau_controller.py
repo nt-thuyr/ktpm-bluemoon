@@ -1,8 +1,7 @@
 from flask import jsonify, request
 from ..services.ho_khau_service import (
     get_hokhau_by_id, search_hokhau_global,
-    create_hokhau, update_hokhau, delete_hokhau,
-    tach_hokhau, get_lich_su_ho_khau
+    create_hokhau, update_hokhau, delete_hokhau, get_lich_su_ho_khau
 )
 
 
@@ -41,20 +40,6 @@ def create_hokhau_controller(payload):
     if result is None:
         return jsonify({"message": "Tạo thất bại. Kiểm tra lại dữ liệu"}), 409
     return jsonify(result), 201
-
-
-def tach_hokhau_controller(payload):
-    if not payload or "idChuHoMoi" not in payload:
-        return jsonify({"message": "Dữ liệu tách hộ không hợp lệ"}), 400
-
-    result = tach_hokhau(payload)
-    if result is None:
-        return jsonify({"message": "Tách hộ thất bại. Kiểm tra lại dữ liệu"}), 500
-
-    return jsonify({
-        "message": "Tách hộ thành công",
-        "data": result
-    }), 201
 
 
 def update_hokhau_controller(id, payload):
