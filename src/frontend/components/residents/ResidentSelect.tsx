@@ -66,7 +66,7 @@ export function ResidentSelect({ value, onChange }: ResidentSelectProps) {
                     aria-expanded={open}
                     className="w-full justify-between bg-amber-50"
                 >
-                    {value ? value : "Nhập tên người nộp..."}
+                    {value ? value : "Nhập tên cư dân..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
