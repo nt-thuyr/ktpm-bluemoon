@@ -70,14 +70,12 @@ def create_population():
     """Tạo 20 Hộ khẩu và ~50 Nhân khẩu"""
 
     ho_list = ["Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Vũ", "Đặng"]
-    dem_list = ["Văn", "Thị", "Đức", "Ngọc", "Minh", "Thanh"]
-    ten_list = ["Hùng", "Lan", "Tuấn", "Hoa", "Dũng", "Mai", "Kiên", "Hương"]
+    ten_list = ["A", "B", "C", "D", "E", "G", "H", "I"]
 
-    def rand_name(gender="Nam"):
+    def rand_name():
         ho = random.choice(ho_list)
-        dem = "Văn" if gender == "Nam" else "Thị"
         ten = random.choice(ten_list)
-        return f"{ho} {dem} {ten}"
+        return f"{ho} {ten}"
 
     if HoKhau.query.count() >= 20:
         print(">>> [SKIP] Dữ liệu dân cư đã đủ (>= 20 hộ).")
@@ -92,14 +90,13 @@ def create_population():
         so_nha = f"P{floor}0{room}"
 
         # 1. Tạo Chủ hộ
-        chu_ho_name = rand_name("Nam")
+        chu_ho_name = rand_name()
         cccd_chu_ho = f"0012020{i:05d}"
 
-        # SỬA LỖI TẠI ĐÂY: Đã xóa trường dia_chi_hien_nay
         nk_chu_ho = NhanKhau(
             ho_ten=chu_ho_name,
-            ngay_sinh=date(1975 + (i % 10), 1 + (i % 12), 15),
-            gioi_tinh="Nam",
+            ngay_sinh=date(2000 + (i % 10), 1 + (i % 12), 15),
+            gioi_tinh=random.choice(["Nam", "Nữ"]),
             cccd=cccd_chu_ho,
             dan_toc="Kinh",
             ton_giao="Không",
@@ -140,28 +137,28 @@ def create_population():
         for j in range(num_members):
             if j == 0:
                 nk_vo = NhanKhau(
-                    ho_ten=rand_name("Nữ"),
+                    ho_ten=rand_name(),
                     ngay_sinh=date(1980 + (i % 5), 5, 20),
-                    gioi_tinh="Nữ",
+                    gioi_tinh=random.choice(["Nam", "Nữ"]),
                     cccd=f"0012021{i:03d}{j}",
                     dan_toc="Kinh",
                     ton_giao="Không",
-                    nghe_nghiep="Đầu bếp",
+                    nghe_nghiep="Nội trợ",
                     ho_khau_id=hk.so_ho_khau,
-                    quan_he_voi_chu_ho="Vợ",
+                    quan_he_voi_chu_ho="Thành viên",
                     ngay_them_nhan_khau=date(2023, 2, 1)
                 )
                 db.session.add(nk_vo)
             else:  # Con
                 nk_con = NhanKhau(
-                    ho_ten=rand_name("Nam" if j % 2 == 0 else "Nữ"),
+                    ho_ten=rand_name(),
                     ngay_sinh=date(2010 + j, 8, 15),
                     gioi_tinh="Nam" if j % 2 == 0 else "Nữ",
                     dan_toc="Kinh",
                     ton_giao="Không",
                     nghe_nghiep="Học sinh",
                     ho_khau_id=hk.so_ho_khau,
-                    quan_he_voi_chu_ho="Con",
+                    quan_he_voi_chu_ho="Thành viên",
                     ngay_them_nhan_khau=date(2023, 2, 1)
                 )
                 db.session.add(nk_con)
@@ -173,7 +170,7 @@ def create_history_records():
     """Tạo lịch sử mẫu"""
     hk = HoKhau.query.first()
     if hk:
-        member = NhanKhau.query.filter_by(ho_khau_id=hk.so_ho_khau, quan_he_voi_chu_ho="Con").first()
+        member = NhanKhau.query.filter_by(ho_khau_id=hk.so_ho_khau, quan_he_voi_chu_ho="Thành viên").first()
         if member:
             existing_ls = LichSuHoKhau.query.filter_by(nhan_khau_id=member.id, loai_thay_doi=2).first()
             if not existing_ls:
