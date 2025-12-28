@@ -115,7 +115,12 @@ export function UserCreateModal({
                     </div>
 
                     <DialogFooter className="mt-4">
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => onOpenChange(false)}
+                            className="bg-red-500 text-white hover:bg-red-600 border-transparent"
+                        >
                             Hủy
                         </Button>
                         <Button type="submit" disabled={isLoading}>

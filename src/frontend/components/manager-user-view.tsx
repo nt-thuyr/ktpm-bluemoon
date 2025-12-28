@@ -31,7 +31,7 @@ export function UserManagementSection() {
             </CardHeader>
             <CardContent className="flex gap-4">
                 <Button onClick={() => setIsModalOpen(true)}>
-                    <UserPlus className="mr-2 h-4 w-4" /> Tạo tài khoản Kế toán
+                    <UserPlus className="mr-2 h-4 w-4" /> Tạo tài khoản cho Cán bộ
                 </Button>
 
                 {/* <Link href="/users">
