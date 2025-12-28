@@ -8,7 +8,9 @@ def role_required(*allowed_roles):
     Usage: @role_required("Tổ trưởng", "Kế toán")
     If allowed_roles is empty, only verifies JWT.
     """
+    
     def decorator(fn):
+
         @wraps(fn)
         def wrapper(*args, **kwargs):
             try:
@@ -21,6 +23,8 @@ def role_required(*allowed_roles):
                 return fn(*args, **kwargs)
 
             user_role = claims.get("vai_tro")
+        
+
             if not user_role:
                 return jsonify({"message": "Vai trò người dùng không xác định"}), 403
 

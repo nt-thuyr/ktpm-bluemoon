@@ -10,7 +10,7 @@ from ..services.nop_tien_service import (
     delete_noptien,
     get_noptien_detail_for_pdf,
 )
-from ..utils.pdf_generator import create_receipt_pdf
+# from ..utils.pdf_generator import create_receipt_pdf
 
 
 def get_all_noptien_controller():
@@ -59,26 +59,30 @@ def export_receipt_pdf_controller(nop_tien_id):
     """
     # 1. Lấy dữ liệu chi tiết cho biên nhận
     data = get_noptien_detail_for_pdf(nop_tien_id)
-
+        
+    
     if not data:
         return jsonify({"message": "Không tìm thấy bản ghi nộp tiền để xuất biên nhận"}), 404
 
-    try:
-        # 2. Gọi utility để tạo file PDF (trả về bytes)
-        pdf_content = create_receipt_pdf(data)
+    # Trả về JSON để Frontend tự hiển thị
+    return jsonify(data), 200
 
-        # 3. Tạo luồng dữ liệu trong bộ nhớ (In-memory buffer)
-        buffer = io.BytesIO(pdf_content)
-        buffer.seek(0)  # Đưa con trỏ về đầu file để sẵn sàng đọc
+    # try:
+    #     # 2. Gọi utility để tạo file PDF (trả về bytes)
+    #     pdf_content = create_receipt_pdf(data)
 
-        # 4. Trả về file cho client
-        return send_file(
-            buffer,
-            mimetype='application/pdf',
-            as_attachment=True,
-            download_name=f"bien_lai_{nop_tien_id}.pdf"
-        )
+    #     # 3. Tạo luồng dữ liệu trong bộ nhớ (In-memory buffer)
+    #     buffer = io.BytesIO(pdf_content)
+    #     buffer.seek(0)  # Đưa con trỏ về đầu file để sẵn sàng đọc
 
-    except Exception as e:
-        print(f"Error generating PDF: {e}")
-        return jsonify({"message": "Lỗi hệ thống khi tạo file PDF"}), 500
+    #     # 4. Trả về file cho client
+    #     return send_file(
+    #         buffer,
+    #         mimetype='application/pdf',
+    #         as_attachment=True,
+    #         download_name=f"bien_lai_{nop_tien_id}.pdf"
+    #     )
+
+    # except Exception as e:
+    #     print(f"Error generating PDF: {e}")
+    #     return jsonify({"message": "Lỗi hệ thống khi tạo file PDF"}), 500

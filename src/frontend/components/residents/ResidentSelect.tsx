@@ -23,7 +23,8 @@ import * as React from "react";
 
 interface ResidentSelectProps {
     value?: string; // Tên người đang chọn
-    onChange: (name: string, hoKhauId?: number) => void;
+    onChange: (residentId: number, residentName: string) => void;
+
 }
 
 export function ResidentSelect({ value, onChange }: ResidentSelectProps) {
@@ -95,7 +96,8 @@ export function ResidentSelect({ value, onChange }: ResidentSelectProps) {
                                     key={resident.id}
                                     value={resident.hoTen}
                                     onSelect={() => {
-                                        onChange(resident.hoTen, Number(resident.householdId));
+                                        // Trả về ID và Tên
+                                        onChange(Number(resident.id), resident.hoTen);
                                         setOpen(false);
                                     }}
                                 >
@@ -108,7 +110,7 @@ export function ResidentSelect({ value, onChange }: ResidentSelectProps) {
                                     <div className="flex flex-col">
                                         <span className="font-medium">{resident.hoTen}</span>
                                         <span className="text-xs text-muted-foreground">
-                                            CCCD: {resident.cccd || "N/A"} - Hộ khẩu ID: {resident.householdId}
+                                            CCCD: {resident.cccd || "N/A"} - Hộ khẩu ID: {resident.hoKhauId}
                                         </span>
                                     </div>
                                 </CommandItem>

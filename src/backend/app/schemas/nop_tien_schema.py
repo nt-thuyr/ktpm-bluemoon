@@ -10,7 +10,7 @@ class NopTienSchema(Schema):
 
     ho_khau_id = fields.Int(required=True, data_key="HoKhauId")
     khoan_thu_id = fields.Int(required=True, data_key="KhoanThuId")
-
+    ten_khoan_thu = fields.Str(dump_only=True, data_key="TenKhoanThu")
     so_tien = fields.Float(required=True, data_key="SoTien")
 
     ngay_nop = fields.Date(load_default=date.today, data_key="NgayNop")
@@ -25,6 +25,7 @@ class NopTienSchema(Schema):
             "SoTien": ["SoTien", "so_tien", "soTien"],
             "NgayNop": ["NgayNop", "ngay_nop", "ngayNop"],
             "NguoiNop": ["NguoiNop", "nguoi_nop", "nguoiNop"],
+            "TenKhoanThu": ["TenKhoanThu", "ten_khoan_thu", "tenKhoanThu"],
         }
 
         normalized_data = data.copy()

@@ -15,7 +15,7 @@ def serialize_tamtru(tt, ten_nhan_khau=None, cccd=None):
         "TrangThai": tt.trang_thai,  # "Tạm trú" hoặc "Tạm vắng"
         "ThoiGian": str(tt.thoi_gian) if tt.thoi_gian else None
     }
-
+    
 
 def get_all_tamtru_global(keyword=None):
     """

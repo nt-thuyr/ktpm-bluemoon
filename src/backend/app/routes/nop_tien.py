@@ -47,7 +47,7 @@ def route_create():
 def route_delete(nop_tien_id):
     return delete_noptien_controller(nop_tien_id)
 
-@nop_tien_bp.route("/<int:nop_tien_id>/pdf", methods=["GET"])
+@nop_tien_bp.route("/<int:nop_tien_id>/detail", methods=["GET"])
 @role_required(ROLE_KE_TOAN)
 def route_export_pdf(nop_tien_id):
     return export_receipt_pdf_controller(nop_tien_id)

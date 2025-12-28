@@ -121,7 +121,7 @@ def tach_hokhau(data):
         chu_ho_moi_id = data.get("idChuHoMoi")
         hk_moi = HoKhau(
             so_nha=data.get("DiaChiMoi"),
-            duong=data.get("Duong"),
+            # duong=data.get("Duong"),
             ngay_lam_ho_khau=datetime.now().date(),
             chu_ho_id=chu_ho_moi_id
         )
@@ -137,14 +137,14 @@ def tach_hokhau(data):
             if nk:
                 if nk.ho_khau_id:
                     ls_ra = LichSuHoKhau(nhan_khau_id=nk.id, ho_khau_id=nk.ho_khau_id, loai_thay_doi=2,
-                                         thoi_gian=datetime.now().date())
+                                        thoi_gian=datetime.now().date())
                     db.session.add(ls_ra)
 
                 nk.ho_khau_id = hk_moi.so_ho_khau
                 nk.quan_he_voi_chu_ho = "Chủ hộ" if nk.id == chu_ho_moi_id else "Thành viên"
 
                 ls_vao = LichSuHoKhau(nhan_khau_id=nk.id, ho_khau_id=hk_moi.so_ho_khau, loai_thay_doi=1,
-                                      thoi_gian=datetime.now().date())
+                                    thoi_gian=datetime.now().date())
                 db.session.add(ls_vao)
 
         db.session.commit()
