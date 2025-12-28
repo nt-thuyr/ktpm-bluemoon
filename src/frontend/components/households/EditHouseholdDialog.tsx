@@ -29,7 +29,7 @@ const formSchema = z.object({
     duong: z.string().min(1, "Đường không được để trống"),
     phuong: z.string().min(1, "Phường không được để trống"),
     quan: z.string().min(1, "Quận không được để trống"),
-    dienTich: z.coerce.number().min(0, "Diện tích phải lớn hơn 0"), // coerce để ép kiểu string input -> number
+    // dienTich: z.coerce.number().min(0, "Diện tích phải lớn hơn 0"), // coerce để ép kiểu string input -> number
     chuHoId: z.coerce.number().optional(), // Có thể nhập ID chủ hộ mới
 
 });
@@ -55,7 +55,7 @@ export function EditHouseholdDialog({
             duong: "",
             phuong: "",
             quan: "",
-            dienTich: 0,
+            // dienTich: 0,
             chuHoId: undefined,
         },
     });
@@ -68,7 +68,7 @@ export function EditHouseholdDialog({
                 duong: APARTMENT_INFO.DUONG,
                 phuong: APARTMENT_INFO.PHUONG,
                 quan: APARTMENT_INFO.QUAN,
-                dienTich: household.dienTich,
+                // dienTich: household.dienTich,
                 chuHoId: household.chuHoId || undefined,
             });
         }
@@ -80,7 +80,7 @@ export function EditHouseholdDialog({
             ...household,
             ...values,
         };
-
+        console.log(updatedHousehold);
         await onSave(updatedHousehold);
     };
 
@@ -150,7 +150,7 @@ export function EditHouseholdDialog({
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <FormField
+                            {/* <FormField
                                 control={form.control}
                                 name="dienTich"
                                 render={({ field }) => (
@@ -162,7 +162,7 @@ export function EditHouseholdDialog({
                                         <FormMessage />
                                     </FormItem>
                                 )}
-                            />
+                            /> */}
                             <FormField
                                 control={form.control}
                                 name="chuHoId"
