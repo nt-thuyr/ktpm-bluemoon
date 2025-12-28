@@ -1,32 +1,50 @@
-import { UserDTO } from "../types/api/auth.api";
-import { User } from "../types/models/user";
-export function mapUserDTO(dto: UserDTO): User {
+// --- TYPES ---
+export type UserRole = "to_truong" | "ke_toan" | "unknown";
+
+export interface User {
+  id: number;
+  username: string;
+  hoTen: string;
+  vaiTro: UserRole;
+  ngayTao: string | null;
+}
+
+export interface AuthResponse {
+  accessToken: string;
+  user: User;
+}
+
+const mapBackendRoleToEnum = (rawRole: string): UserRole => {
+  if (rawRole === "Tổ trưởng") return "to_truong";
+  if (rawRole === "Kế toán") return "ke_toan";
+  return "unknown";
+};
+
+// Map User DTO -> User Model
+export const mapUserToUI = (dto: any): User => {
   return {
     id: dto.id,
     username: dto.username,
-    fullName: dto.ho_ten ?? undefined,
-    role: dto.vai_tro,
-    createdAt: dto.ngay_tao ? new Date(dto.ngay_tao) : undefined,
+    hoTen: dto.ho_ten || "",
+    vaiTro: mapBackendRoleToEnum(dto.vai_tro), // Convert role ở đây
+    ngayTao: dto.ngay_tao,
   };
-}
+};
 
-// Role raw từ backend (KHÔNG đổi)
-export const BACKEND_ROLES = {
-  TO_TRUONG: "Tổ trưởng",
-  KE_TOAN: "Kế toán",
-} as const;
+export const mapAuthResponseToUI = (dto: any): AuthResponse => {
+  return {
+    accessToken: dto.access_token,
+    user: mapUserToUI(dto.profile),
+  };
+};
 
-// Role chuẩn FE dùng nội bộ
-export type AppRole = "to_truong" | "ke_toan";
-
-// Map backend → FE
-export function mapBackendRole(role: string): AppRole | null {
+export const mapEnumToBackendRole = (role: UserRole): string => {
   switch (role) {
-    case BACKEND_ROLES.TO_TRUONG:
-      return "to_truong";
-    case BACKEND_ROLES.KE_TOAN:
-      return "ke_toan";
+    case "to_truong":
+      return "Tổ trưởng";
+    case "ke_toan":
+      return "Kế toán";
     default:
-      return null;
+      return "Tổ trưởng";
   }
-}
+};
