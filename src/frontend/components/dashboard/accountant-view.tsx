@@ -1,9 +1,24 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Banknote, TrendingUp } from "lucide-react";
+import { dashboardService } from "@/lib/services/dashboard";
+import { FinancialStats, formatVND } from "@/lib/types/models/dashboard";
+import { AlertCircle, Banknote, Loader2, TrendingUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { SimpleBarChart } from "./DashboardChart";
 
 export function AccountantDashboard() {
+    const [stats, setStats] = useState<FinancialStats | null>(null);
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        dashboardService.getAccountantStats()
+            .then(data => setStats(data))
+            .catch(err => console.error(err))
+            .finally(() => setLoading(false));
+    }, []);
+    const currentMonth = new Date().getMonth() + 1;
+    if (loading) return <div className="p-10 text-center"><Loader2 className="animate-spin inline mr-2" /> Đang tải dữ liệu tài chính...</div>;
     return (
         <div className="space-y-6">
             <div>
@@ -11,80 +26,59 @@ export function AccountantDashboard() {
                 <p className="text-muted-foreground">Báo cáo doanh thu, công nợ và các khoản thu phí.</p>
             </div>
 
-            {/* 3 CARD CHỈ SỐ VỀ TIỀN */}
+            {/* --- 3 CARD CHỈ SỐ THẬT --- */}
             <div className="grid gap-4 md:grid-cols-3">
-                <Card className="shadow-sm">
+                <Card className="shadow-sm border-t-4 border-t-green-500">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Doanh thu T11</CardTitle>
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Doanh thu T{currentMonth}</CardTitle>
                         <Banknote className="h-4 w-4 text-green-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-green-700">150.000.000 đ</div>
-                        <p className="text-xs text-muted-foreground">+12% so với tháng 10</p>
+                        <div className="text-2xl font-bold text-green-700">
+                            {formatVND(stats?.cards.tong_doanh_thu || 0)}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Tổng thu trong tháng này</p>
                     </CardContent>
                 </Card>
 
-                <Card className="shadow-sm border-l-4 border-l-red-500">
+                <Card className="shadow-sm border-t-4 border-t-red-500">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Nợ quá hạn</CardTitle>
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Căn hộ nợ phí</CardTitle>
                         <AlertCircle className="h-4 w-4 text-red-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-red-600">12.500.000 đ</div>
-                        <p className="text-xs text-muted-foreground">12 Căn hộ chưa đóng phí</p>
+                        <div className="text-2xl font-bold text-red-600">
+                            {stats?.cards.can_ho_no_phi} Căn hộ
+                        </div>
+                        <p className="text-xs text-muted-foreground">Chưa hoàn thành các khoản bắt buộc</p>
                     </CardContent>
                 </Card>
 
-                <Card className="shadow-sm">
+                <Card className="shadow-sm border-t-4 border-t-blue-500">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Dự kiến thu</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Trạng thái hệ thống</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-primary">180.000.000 đ</div>
-                        <p className="text-xs text-muted-foreground">Đạt 85% kế hoạch</p>
+                        <div className="text-2xl font-bold text-blue-600">Ổn định</div>
+                        <p className="text-xs text-muted-foreground">Dữ liệu cập nhật thời gian thực</p>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* BIỂU ĐỒ CỘT & DANH SÁCH NỢ */}
+            {/* --- BIỂU ĐỒ & DANH SÁCH --- */}
             <div className="grid gap-4 md:grid-cols-7">
-                {/* Biểu đồ doanh thu chiếm 4 phần */}
-                <Card className="col-span-4 shadow-sm">
-                    <CardHeader>
-                        <CardTitle>Biểu đồ doanh thu 6 tháng</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pl-2">
-                        {/* Giữ chỗ cho biểu đồ cột */}
-                    </CardContent>
-                </Card>
-
-                {/* Danh sách nợ chiếm 3 phần */}
-                <Card className="col-span-3 shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="text-red-600 text-base">Cần nhắc nhở thanh toán</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {/* Mock list items */}
-                            {[1, 2, 3, 4].map((i) => (
-                                <div key={i} className="flex items-center justify-between border-b pb-2 last:border-0">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-xs">
-                                            P{i}
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-sm">Phòng 10{i}</p>
-                                            <p className="text-xs text-red-500">Nợ 3 tháng</p>
-                                        </div>
-                                    </div>
-                                    <div className="font-bold text-sm text-slate-700">1.2tr</div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                {/* Biểu đồ doanh thu 6 tháng */}
+                <div className="col-span-4">
+                    <SimpleBarChart
+                        title="Biểu đồ doanh thu 6 tháng gần nhất"
+                        data={stats?.charts.doanh_thu_6_thang || []}
+                        dataKey="total"
+                        color="#10b981" // Màu xanh emerald
+                    />
+                </div>
             </div>
         </div>
-    );
+    )
+
 }

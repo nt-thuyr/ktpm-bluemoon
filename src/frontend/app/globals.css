@@ -159,6 +159,16 @@
   body {
     @apply bg-background text-foreground;
   }
+  :root {
+    /* ... các màu khác của shadcn ... */
+    --color-nam: #3b82f6;   /* Blue 500 */
+    --color-nu: #f16979;    /* Pink 500 */
+    --color-khac: #94a3b8;  /* Slate 400 */
+    
+    --color-thuong-tru: #22c55e;
+    --color-tam-tru: #eab308;
+    --color-tam-vang: #f97316;
+  }
 }
 
 

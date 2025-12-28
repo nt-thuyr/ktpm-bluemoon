@@ -4,9 +4,10 @@ import { PaymentCreateModal } from "@/components/payment/CreatePaymentModel";
 import { PaymentTable } from "@/components/payment/PaymentTable";
 import { ReceiptModal } from "@/components/payment/ReceiptModal";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { usePayment } from "@/lib/hooks/use-payment";
 import { CreatePaymentRequest } from "@/lib/types/models/payment";
-import { PlusCircle, ReceiptText } from "lucide-react";
+import { PlusCircle, ReceiptText, Search } from "lucide-react";
 import { useState } from "react";
 
 export default function PaymentManagerPage() {
@@ -19,6 +20,8 @@ export default function PaymentManagerPage() {
         isFetchingReceipt,
         createPayment,
         isCreating,
+        searchQuery,
+        setSearchQuery,
     } = usePayment();
 
     // States  quản lý việc đóng mở các Modal (Tạo mới, In ấn)
@@ -48,7 +51,6 @@ export default function PaymentManagerPage() {
 
     return (
         <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
-
             <div className="flex items-center justify-between space-y-2">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -65,9 +67,18 @@ export default function PaymentManagerPage() {
                     </Button>
                 </div>
             </div>
-
-            {/* Khu vực bộ lọc (Ví dụ: Dropdown chọn Khoản thu...) - Để dành làm sau */}
-            {/* <div className="flex gap-2"> ...Filters... </div> */}
+            {/* Search bar */}
+            <div className="flex items-center justify-between gap-2">
+                <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Tìm theo tên người nộp, mã hộ..."
+                        className="pl-8"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+            </div>
 
             <PaymentTable
                 data={payments}
