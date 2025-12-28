@@ -20,6 +20,7 @@ import { CreateRegistrationRequest } from "@/lib/types/api/absence-registration.
 import { AbsenceRegistration } from "@/lib/types/models/absence-registration";
 
 import { useEffect, useState } from "react";
+import { ResidentSelect } from "../residents/ResidentSelect";
 
 interface AbsenceModalProps {
     open: boolean;
@@ -37,6 +38,8 @@ export function AbsenceModal({
     isLoading,
 }: AbsenceModalProps) {
     const isEditMode = !!initialData;
+
+    const [selectedResidentName, setSelectedResidentName] = useState("");
 
     // State form
     const [formData, setFormData] = useState({
@@ -59,8 +62,9 @@ export function AbsenceModal({
                     thoi_gian: initialData.ngayDangKy,
                     noi_dung_de_nghi: initialData.noiDung,
                 });
+                setSelectedResidentName(initialData.hoTen); // Set tên để hiển thị
             } else {
-                // --- MODE CREATE: Reset trắng ---
+                // Reset
                 setFormData({
                     nhan_khau_id: "",
                     trang_thai: "Tạm trú",
@@ -68,14 +72,13 @@ export function AbsenceModal({
                     thoi_gian: new Date().toISOString().split("T")[0], // Default today
                     noi_dung_de_nghi: "",
                 });
+                setSelectedResidentName(""); // Reset tên
             }
         }
     }, [open, initialData]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
-        // Nếu là Edit, ta chỉ gửi các trường cho phép
         if (isEditMode) {
             onSubmit({
                 dia_chi: formData.dia_chi,
@@ -104,25 +107,30 @@ export function AbsenceModal({
 
                     {/* 1. Chọn Nhân khẩu */}
                     <div className="space-y-2">
-                        <Label>Nhân khẩu (ID)</Label>
+                        <Label>Nhân khẩu</Label>
                         {isEditMode ? (
-                            // KHI EDIT: Chỉ hiện text, không cho sửa
-                            <div className="p-2 bg-gray-100 rounded border text-sm font-medium text-gray-700">
+                            // Edit: Chỉ hiện tên (không sửa)
+                            <div className="p-2 bg-slate-100 rounded border text-sm font-medium text-slate-700">
                                 {initialData?.hoTen} (ID: {initialData?.nhanKhauId})
                             </div>
                         ) : (
-                            // KHI CREATE: Cho nhập (Lý tưởng là dùng component Search Resident ở đây)
-                            <Input
-                                placeholder="Nhập ID nhân khẩu..."
-                                type="number"
-                                required
-                                value={formData.nhan_khau_id}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, nhan_khau_id: e.target.value })
-                                }
+                            // Create: Dùng Search Select xịn
+                            <ResidentSelect
+                                value={selectedResidentName}
+                                onChange={(id, name) => {
+                                    // Cập nhật ID vào form data để gửi API
+                                    setFormData({ ...formData, nhan_khau_id: id.toString() });
+                                    // Cập nhật tên để hiển thị trên UI
+                                    setSelectedResidentName(name);
+                                }}
                             />
                         )}
+                        {/* Validation message nếu cần */}
+                        {!isEditMode && !formData.nhan_khau_id && (
+                            <p className="text-[10px] text-muted-foreground">Vui lòng chọn cư dân</p>
+                        )}
                     </div>
+
 
                     {/* 2. Trạng thái */}
                     <div className="space-y-2">

@@ -80,19 +80,26 @@ def get_thong_ke_gioi_tinh(): # Trả về format cho biểu đồ tròn (Pie Ch
     ).group_by(NhanKhau.gioi_tinh).all()
 
     results = []
-    mapping_mau = {
-        "Nam": "var(--color-nam)",  # Define màu ở frontend
-        "Nữ": "var(--color-nu)",
-        "Khác": "var(--color-khac)"
+    
+    # Mapping để sửa lỗi mất dấu và map màu
+    label_map = {
+        "Nam": {"label": "Nam", "color": "var(--color-nam)"},
+        "Nu":  {"label": "Nữ", "color": "var(--color-nu)"},  # Fix "Nu" -> "Nữ"
+        "Nữ":  {"label": "Nữ", "color": "var(--color-nu)"},
+        "Khác": {"label": "Khác", "color": "var(--color-khac)"}
     }
 
     for gioi_tinh, so_luong in query:
-        # Xử lý trường hợp gioi_tinh là None hoặc chuỗi rỗng
-        label = gioi_tinh if gioi_tinh else "Không xác định"
+        # Nếu gioi_tinh là None thì để là "Khác" hoặc "Không xác định"
+        db_value = gioi_tinh if gioi_tinh else "Khác"
+        
+        # Lấy thông tin chuẩn từ map, nếu ko có thì dùng mặc định
+        info = label_map.get(db_value, {"label": db_value, "color": "#f474c1"})
+        
         results.append({
-            "name": label,
+            "name": info["label"],
             "value": so_luong,
-            "fill": mapping_mau.get(label, "#8884d8")  # Màu mặc định nếu không khớp
+            "fill": info["color"]
         })
 
     return results

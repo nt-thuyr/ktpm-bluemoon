@@ -29,6 +29,7 @@ def route_create():
 @tam_tru_bp.route("/<int:id>", methods=["PUT"])
 @role_required(ROLE_TO_TRUONG)
 def route_update(id):
+    
     try:
         return update_tamtru_controller(id, request.get_json())
     except Exception as e:
