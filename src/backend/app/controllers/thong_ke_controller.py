@@ -4,7 +4,9 @@ from ..services.thong_ke_service import (
     get_so_can_ho_chua_dong_phi,
     get_tong_cu_dan,
     get_doanh_thu_6_thang_gan_nhat,
-    get_co_cau_dan_cu
+    get_co_cau_dan_cu,
+    get_thong_ke_gioi_tinh,
+    get_thong_ke_do_tuoi
 )
 
 def get_financial_statistics_controller():
@@ -20,12 +22,14 @@ def get_financial_statistics_controller():
     }), 200
 
 def get_population_statistics_controller():
-    """Thống kê dành cho Tổ trưởng: Dân cư và Hộ khẩu"""
+    """Thống kê dành cho Tổ trưởng: Dân cư"""
     return jsonify({
         "cards": {
             "tong_cu_dan": get_tong_cu_dan()
         },
         "charts": {
-            "co_cau_dan_cu": get_co_cau_dan_cu()
+            "co_cau_dan_cu": get_co_cau_dan_cu(), # Cơ cấu (Thường trú/Tạm trú/Tạm vắng)
+            "phan_bo_gioi_tinh": get_thong_ke_gioi_tinh(), # Tỷ lệ Nam/Nữ (Pie Chart)
+            "phan_bo_do_tuoi": get_thong_ke_do_tuoi() # Phân bố độ tuổi (Bar Chart)
         }
     }), 200
