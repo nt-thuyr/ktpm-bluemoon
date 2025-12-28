@@ -1,7 +1,6 @@
 "use client";
 
 import { HouseholdMembersTable } from "@/components/households/HouseholdDetailCard";
-import { SplitHouseholdDialog } from "@/components/households/SplitHouseholdDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -45,15 +44,6 @@ export default function HouseholdDetailPage() {
                     <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
                 </Button>
                 <div className="space-x-2">
-
-                    <SplitHouseholdDialog
-                        members={household.thanhVien || []}
-                        onSuccess={() => {
-                            // Gọi hàm load lại dữ liệu trang này
-                            loadData();
-                            // Hoặc redirect về trang danh sách nếu hộ cũ bị xóa (tùy logic backend)
-                        }}
-                    />
                 </div>
             </div>
 

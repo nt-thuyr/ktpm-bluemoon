@@ -11,20 +11,33 @@ interface Props {
     value: string;
     onSelect: (value: string) => void;
     placeholder: string;
+    disabled?: boolean;
 }
 
-export function ComboboxSearch({ options, value, onSelect, placeholder }: Props) {
+export function ComboboxSearch({ 
+    options, 
+    value, 
+    onSelect, 
+    placeholder, 
+    disabled = false
+}: Props) {
     const [open, setOpen] = React.useState(false)
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between bg-white">
+                <Button 
+                    variant="outline" 
+                    role="combobox" 
+                    aria-expanded={open} 
+                    className="w-full justify-between bg-white"
+                    disabled={disabled} // <--- 3. Truyền xuống Button để chặn click
+                >
                     {value ? options.find((opt) => opt.value === value)?.label : placeholder}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0">
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                 <Command>
                     <CommandInput placeholder="Tìm kiếm..." />
                     <CommandList>

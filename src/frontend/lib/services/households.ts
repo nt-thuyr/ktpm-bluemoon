@@ -4,7 +4,6 @@ import { privateApi } from "@/lib/services/client";
 import {
   CreateHouseholdRequest,
   HouseholdApi,
-  SplitHouseholdRequest,
 } from "@/lib/types/api/household.api";
 import { Household } from "@/lib/types/models/household";
 
@@ -77,19 +76,5 @@ export const householdApi = {
   // 5. Delete
   deleteHousehold: async (id: number): Promise<void> => {
     await privateApi.delete(`/api/ho-khau/${id}`);
-  },
-
-  // 6. Tách hộ (Split)
-  splitHousehold: async (data: SplitHouseholdRequest): Promise<Household> => {
-    const res = await privateApi.post<HouseholdDetailResponse>(
-      "/api/ho-khau/tach-ho",
-      data
-    );
-    return mapHouseholdApiToModel(res.data.data);
-  },
-  // Lấy lịch sử thay đổi hộ khẩu
-  getHouseholdHistory: async (id: number): Promise<any[]> => {
-    const res = await privateApi.get<any>(`/api/ho-khau/${id}/lich-su`);
-    return res.data.data;
   },
 };

@@ -24,7 +24,7 @@ import { Banknote, Home } from "lucide-react";
 // Menu items
 const items = [
     { title: "Dashboard", url: "/", icon: Home },
-    { title: "Thu phí", url: "/fees", icon: Banknote },
+    { title: "Khoản thu", url: "/fees", icon: Banknote },
     { title: "Lịch sử thu phí", url: "/payments", icon: Banknote },
     { title: "Tài khoản", url: "/profile", icon: Settings },
 ]

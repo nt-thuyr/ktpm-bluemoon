@@ -83,35 +83,46 @@ def create_hokhau(data):
 
 def update_hokhau(id, data):
     hk = HoKhau.query.get(id)
-    if not hk: return None
+    if not hk: 
+        return None
 
     clean_data = hk_schema.load(data, partial=True)
 
     # Xử lý thay đổi Chủ Hộ
     new_chu_ho_id = clean_data.get("chu_ho_id")
     if new_chu_ho_id and new_chu_ho_id != hk.chu_ho_id:
-        old_chu_ho = NhanKhau.query.get(hk.chu_ho_id)
+        # Kiểm tra chủ hộ mới có thuộc hộ này không
         new_chu_ho = NhanKhau.query.get(new_chu_ho_id)
+        if not new_chu_ho:
+            return "new_chu_ho_not_found"
+        
+        if new_chu_ho.ho_khau_id != hk. so_ho_khau: 
+            return "new_chu_ho_not_in_household"
 
-        if new_chu_ho:
-            # 1. Hạ chủ hộ cũ xuống làm thành viên
-            if old_chu_ho:
-                old_chu_ho.quan_he_voi_chu_ho = "Thành viên"
+        # 1. Đưa TẤT CẢ thành viên trong hộ về quan hệ "Thành viên"
+        all_members = NhanKhau.query.filter_by(ho_khau_id=hk.so_ho_khau).all()
+        for member in all_members:
+            member.quan_he_voi_chu_ho = "Thành viên"
 
-            # 2. Đưa người mới lên làm chủ hộ
-            new_chu_ho.ho_khau_id = hk.so_ho_khau  # Đảm bảo thuộc hộ này
-            new_chu_ho.quan_he_voi_chu_ho = "Chủ hộ"
-            hk.chu_ho_id = new_chu_ho.id
+        # 2. Đưa người mới lên làm chủ hộ
+        new_chu_ho.quan_he_voi_chu_ho = "Chủ hộ"
+        hk. chu_ho_id = new_chu_ho.id
 
-    for attr, value in clean_data.items():
-        if attr != "chu_ho_id" and getattr(hk, attr) != value:
+    # Cập nhật các field khác (nếu có)
+    for attr, value in clean_data. items():
+        if attr != "chu_ho_id" and hasattr(hk, attr) and getattr(hk, attr) != value:
             setattr(hk, attr, value)
 
     try:
         db.session.commit()
-    except IntegrityError:
-        db.session.rollback()
+    except IntegrityError as e:
+        db.session. rollback()
+        print(f"❌ IntegrityError: {str(e)}")  # Log để debug
         return "conflict"
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Unexpected error: {str(e)}")  # Log để debug
+        return "error"
 
     return hk_schema.dump(hk)
 

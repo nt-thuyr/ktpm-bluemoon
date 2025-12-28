@@ -14,11 +14,11 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"; // Hoặc đường dẫn tới component Table của bạn
+} from "@/components/ui/table";
 import { Calendar, MapPin, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import { AbsenceRegistration } from "@/lib/types/models/absence-registration";
-import { format } from "date-fns"; // Khuyên dùng thư viện này để format ngày
+import { format } from "date-fns";
 
 interface AbsenceTableProps {
     data: AbsenceRegistration[];

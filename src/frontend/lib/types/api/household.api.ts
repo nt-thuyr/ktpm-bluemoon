@@ -28,10 +28,3 @@ export interface CreateHouseholdRequest {
   DienTich: number;
   NgayLamHoKhau?: string; // "YYYY-MM-DD"
 }
-
-//Payload để Tách hộ (Khớp với hàm tach_hokhau)
-export interface SplitHouseholdRequest {
-  idChuHoMoi: number;
-  dsThanhVienSangHoMoi: number[]; // List ID nhân khẩu đi theo
-  DiaChiMoi: string; // Số nhà/ can ho mới
-}

@@ -138,7 +138,7 @@ export function CreateFeeDialog({ onAddSuccess }: CreateFeeModalProps) {
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="BatBuoc">Bắt buộc (Phí, Điện, Nước)</SelectItem>
+                                            <SelectItem value="BatBuoc">Bắt buộc (Phí dịch vụ)</SelectItem>
                                             <SelectItem value="TuNguyen">Tự nguyện (Đóng góp)</SelectItem>
                                         </SelectContent>
                                     </Select>
