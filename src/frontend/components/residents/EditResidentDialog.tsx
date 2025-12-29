@@ -49,7 +49,6 @@ const formSchema = z.object({
     }, "Ngày sinh không được lớn hơn ngày hiện tại").optional(),
     gioiTinh:  z.string().min(1, "Vui lòng chọn giới tính"),
     cccd: z.string()
-        .regex(/^\d{9}$|^\d{12}$/, "CCCD phải là 9 hoặc 12 chữ số")
         .optional()
         .or(z.literal('')),
     ngheNghiep: z.string().optional(),

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { AlertCircle, LockKeyhole } from "lucide-react";
+import { AlertCircle, CheckCircle2, LockKeyhole } from "lucide-react";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
@@ -20,9 +20,12 @@ export function ChangePasswordForm() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(false); // ✅ Thêm state success
 
     const handleSubmit = async () => {
         setError(null);
+        setSuccess(false); // ✅ Reset success khi submit lại
+        
         if (!data.current) {
             setError("Vui lòng nhập mật khẩu hiện tại.");
             return;
@@ -43,20 +46,23 @@ export function ChangePasswordForm() {
             setError("Mật khẩu mới không được trùng với mật khẩu cũ.");
             return;
         }
+        
         setLoading(true);
-        const success = await changePassword(data.current, data.new);
+        const isSuccess = await changePassword(data. current, data.new);
         setLoading(false);
 
-        if (success) {
-            setData({ current: "", new: "", confirm: "" });
-        }
-        else {
+        if (isSuccess) {
+            setData({ current: "", new:  "", confirm: "" });
+            setSuccess(true); // ✅ Hiển thị thông báo thành công
+        } else {
             setError("Không thể đổi mật khẩu. Vui lòng kiểm tra lại mật khẩu hiện tại.");
         }
     };
-    const handleChange = (field: keyof typeof data, value: string) => {
+
+    const handleChange = (field:  keyof typeof data, value: string) => {
         setData(prev => ({ ...prev, [field]: value }));
-        if (error) setError(null); // Xóa lỗi ngay khi gõ
+        if (error) setError(null);
+        if (success) setSuccess(false); // ✅ Ẩn thông báo success khi gõ
     };
 
     return (
@@ -68,6 +74,18 @@ export function ChangePasswordForm() {
                 <CardDescription>Cập nhật mật khẩu định kỳ để bảo vệ tài khoản.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 max-w-lg">
+                {/* ✅ Thông báo thành công */}
+                {success && (
+                    <Alert className="border-green-500 bg-green-50 text-green-800">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <AlertTitle className="text-green-800">Thành công!</AlertTitle>
+                        <AlertDescription className="text-green-700">
+                            Mật khẩu của bạn đã được cập nhật thành công. 
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {/* Thông báo lỗi */}
                 {error && (
                     <Alert variant="destructive">
                         <AlertCircle className="h-4 w-4" />
@@ -75,6 +93,7 @@ export function ChangePasswordForm() {
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 )}
+
                 <div className="space-y-2">
                     <Label>Mật khẩu hiện tại</Label>
                     <Input
@@ -85,6 +104,7 @@ export function ChangePasswordForm() {
                         className={error && !data.current ? "border-red-500" : ""}
                     />
                 </div>
+                
                 <div className="space-y-2">
                     <Label>Mật khẩu mới</Label>
                     <Input
@@ -94,13 +114,14 @@ export function ChangePasswordForm() {
                         onChange={e => handleChange("new", e.target.value)}
                     />
                 </div>
+                
                 <div className="space-y-2">
                     <Label>Xác nhận mật khẩu mới</Label>
                     <Input
                         type="password"
                         placeholder="••••••"
                         value={data.confirm}
-                        onChange={e => handleChange("confirm", e.target.value)}
+                        onChange={e => handleChange("confirm", e.target. value)}
                         className={error && data.new !== data.confirm ? "border-red-500" : ""}
                     />
                 </div>

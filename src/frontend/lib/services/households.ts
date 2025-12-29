@@ -17,14 +17,25 @@ interface HouseholdDetailResponse {
   data: HouseholdApi;
   message: string;
 }
+
+// ✅ Interface khớp CHÍNH XÁC với backend schema
+interface HouseholdHistoryItem {
+  Id: number;
+  NhanKhauID: number;
+  HoKhauID: number;
+  TenNhanKhau: string;
+  LoaiThayDoi: number;
+  MoTaThayDoi: string;
+  ThoiGian:  string;
+}
+
 export const householdApi = {
   getHouseholds: async (): Promise<Household[]> => {
     const res = await privateApi.get<any>("/api/ho-khau/");
-    // response.data chính là cái cục JSON bạn gửi: { count: 3, data: [...] }
-    const rawData = res.data.data;
+    const rawData = res.data. data;
     return rawData.map(mapHouseholdApiToModel);
   },
-  // 2. Get Detail
+
   getHouseholdById: async (id: number): Promise<Household | null> => {
     try {
       const response = await privateApi.get(`/api/ho-khau/${id}`);
@@ -37,16 +48,14 @@ export const householdApi = {
     }
   },
 
-  // 3. Create
   createHousehold: async (data: CreateHouseholdRequest): Promise<Household> => {
     console.log(">>> [API] Payload Create Household:", data);
     try {
       const res = await privateApi.post<any>("/api/ho-khau/", data);
       console.log(">>> [API] Response Create Household:", res.data);
       const rawData = res.data.data || res.data;
-
       return mapHouseholdApiToModel(rawData);
-    } catch (error: any) {
+    } catch (error:  any) {
       console.error(
         ">>> [API Error] Create failed:",
         error.response?.data || error.message
@@ -55,8 +64,7 @@ export const householdApi = {
     }
   },
 
-  // 4. Update
-  updateHousehold: async (
+  updateHousehold:  async (
     id: number,
     data: Partial<HouseholdApi>
   ): Promise<Household> => {
@@ -64,7 +72,7 @@ export const householdApi = {
       `/api/ho-khau/${id}`,
       data
     );
-    const rawData = res.data?.data || res.data;
+    const rawData = res.data?. data || res.data;
     if (!rawData || !rawData.SoHoKhau) {
       throw new Error(
         "Backend trả về dữ liệu rỗng hoặc sai định dạng sau khi update"
@@ -73,8 +81,24 @@ export const householdApi = {
     return mapHouseholdApiToModel(rawData);
   },
 
-  // 5. Delete
-  deleteHousehold: async (id: number): Promise<void> => {
+  deleteHousehold:  async (id: number): Promise<void> => {
     await privateApi.delete(`/api/ho-khau/${id}`);
+  },
+
+
+  getHouseholdHistory: async (householdId: number): Promise<HouseholdHistoryItem[]> => {
+    try {
+      const res = await privateApi.get(`/api/ho-khau/${householdId}/lich-su`);
+      
+      // Backend trả về:  { SoHoKhau: 1001, LichSu:  [... ] }
+      const historyData = res.data?. LichSu || [];
+      
+      console.log("✅ History Response:", res.data);
+      
+      return Array.isArray(historyData) ? historyData : [];
+    } catch (error) {
+      console.error("❌ Lỗi khi lấy lịch sử:", error);
+      return [];
+    }
   },
 };

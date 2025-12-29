@@ -124,28 +124,37 @@ def update_nhankhau(id, data):
 
     return nk_schema.dump(nk)
 
-
 def delete_nhankhau(id):
+    """
+    Thực chất là CHUYỂN ĐI (tách khỏi hộ), không xóa hẳn
+    """
     nk = NhanKhau.query.get(id)
-    if nk:
-        if nk.quan_he_voi_chu_ho == "Chủ hộ":
-            return "is_chu_ho"
+    if not nk:
+        return False
+    
+    if nk.quan_he_voi_chu_ho == "Chủ hộ":
+        return "is_chu_ho"
 
-        # Nếu người bị xóa đang thuộc 1 hộ khẩu -> Ghi lịch sử "Chuyển đi/Xóa" (2)
-        if nk.ho_khau_id:
-            try:
-                ls = LichSuHoKhau(
-                    nhan_khau_id=nk.id,
-                    ho_khau_id=nk.ho_khau_id,
-                    loai_thay_doi=2,
-                    thoi_gian=datetime.now().date()
-                )
-                db.session.add(ls)
-                db.session.flush()
-            except Exception:
-                pass
+    old_ho_khau_id = nk.ho_khau_id
 
-        db.session.delete(nk)
+    # ✅ Ghi lịch sử "Chuyển đi"
+    if old_ho_khau_id: 
+        ls = LichSuHoKhau(
+            nhan_khau_id=nk.id,
+            ho_khau_id=old_ho_khau_id,
+            loai_thay_doi=2,  # Chuyển đi
+            thoi_gian=datetime.now().date()
+        )
+        db.session.add(ls)
+
+    # ✅ Tách khỏi hộ khẩu (không xóa hẳn)
+    nk.ho_khau_id = None
+    nk.quan_he_voi_chu_ho = None
+
+    try:
         db.session.commit()
         return True
-    return False
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Lỗi khi chuyển đi: {e}")
+        return False

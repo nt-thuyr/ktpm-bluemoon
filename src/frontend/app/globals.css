@@ -54,6 +54,16 @@
   }
 }
 
+nextjs-portal,
+[data-nextjs-dialog-overlay],
+[data-nextjs-toast] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+
 :root {
   --radius: 0.5rem;
   --background: #1e1b4b; 
